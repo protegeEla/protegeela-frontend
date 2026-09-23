@@ -1,186 +1,208 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
-import 'package:flutter_map/flutter_map.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:latlong2/latlong.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../../app/theme.dart';
-import '../../../core/config/app_config.dart';
 import '../../../core/widgets/app_back_button.dart';
-import '../../alerts_map/data/alerts_map_repository.dart';
+import '../../../core/widgets/quick_exit_button.dart';
 
-class WomenPolicePage extends ConsumerStatefulWidget {
+class WomenPolicePage extends StatelessWidget {
   const WomenPolicePage({super.key});
 
-  @override
-  ConsumerState<WomenPolicePage> createState() => _WomenPolicePageState();
-}
-
-class _WomenPolicePageState extends ConsumerState<WomenPolicePage> {
-  Timer? _timer;
-  List<PublicAlertMarker> _alerts = const [];
-  bool _loading = false;
-
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) => _loadAlerts());
-    _timer = Timer.periodic(const Duration(seconds: 8), (_) {
-      if (mounted) _loadAlerts();
-    });
-  }
-
-  @override
-  void dispose() {
-    _timer?.cancel();
-    super.dispose();
-  }
-
-  Future<void> _loadAlerts() async {
-    setState(() => _loading = true);
-    try {
-      final demoAlerts = await ref.read(publicAlertMarkersProvider.future);
-      _alerts = demoAlerts.isNotEmpty
-          ? demoAlerts
-          : await ref.read(alertsMapRepositoryProvider).publicAlertsInBounds(
-              south: -90,
-              west: -180,
-              north: 90,
-              east: 180,
-            );
-    } catch (_) {
-      _alerts = const [];
-    } finally {
-      if (mounted) setState(() => _loading = false);
-    }
+  Future<void> _call180() async {
+    await launchUrl(Uri(scheme: 'tel', path: '180'));
   }
 
   @override
   Widget build(BuildContext context) {
-    final config = ref.watch(appConfigProvider);
-    final center = LatLng(config.defaultLatitude, config.defaultLongitude);
-
     return Scaffold(
       appBar: AppBar(
         leading: const AppBackButton(),
         title: const Text('Delegacia da Mulher'),
+        actions: const [QuickExitButton()],
       ),
       body: SafeArea(
-        child: ListView(
-          padding: const EdgeInsets.all(20),
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 1080),
+            child: ListView(
+              padding: const EdgeInsets.fromLTRB(20, 12, 20, 36),
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(24),
+                  decoration: BoxDecoration(
+                    color: AppColors.surfaceSoft,
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: AppColors.border),
+                  ),
+                  child: const Row(
+                    children: [
+                      Icon(
+                        Icons.local_police_outlined,
+                        color: AppColors.primary,
+                        size: 46,
+                      ),
+                      SizedBox(width: 18),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Atendimento especializado',
+                              style: TextStyle(
+                                fontSize: 22,
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                            SizedBox(height: 5),
+                            Text(
+                              'A Delegacia da Mulher registra ocorrências, solicita medidas protetivas e encaminha para a rede de atendimento.',
+                              style: TextStyle(color: AppColors.textMuted),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 18),
+                const _InformationSection(
+                  icon: Icons.directions_walk_rounded,
+                  title: 'Quando procurar uma delegacia',
+                  items: [
+                    'Para registrar ameaça, agressão, perseguição, violência sexual, psicológica, patrimonial ou digital.',
+                    'Quando precisar solicitar uma medida protetiva de urgência.',
+                    'Para complementar um registro com novas provas ou informar o descumprimento de uma medida.',
+                  ],
+                ),
+                const SizedBox(height: 14),
+                const _InformationSection(
+                  icon: Icons.folder_copy_outlined,
+                  title: 'O que levar, se estiver seguro',
+                  items: [
+                    'Documento de identificação — a falta dele não deve impedir o pedido de ajuda.',
+                    'Mensagens, fotos, vídeos, áudios, nomes de testemunhas e números de protocolos anteriores.',
+                    'Informações sobre filhos, dependentes, endereço e formas seguras de contato.',
+                  ],
+                ),
+                const SizedBox(height: 14),
+                const _InformationSection(
+                  icon: Icons.gavel_rounded,
+                  title: 'O que você pode solicitar',
+                  items: [
+                    'Registro do boletim de ocorrência e orientação sobre os próximos passos.',
+                    'Avaliação de medida protetiva, como afastamento e proibição de contato.',
+                    'Encaminhamento para saúde, assistência social, abrigo ou orientação jurídica.',
+                  ],
+                ),
+                const SizedBox(height: 18),
+                LayoutBuilder(
+                  builder: (context, constraints) {
+                    final wide = constraints.maxWidth >= 620;
+                    final buttons = [
+                      FilledButton.icon(
+                        onPressed: () => context.go('/mapa'),
+                        icon: const Icon(Icons.map_outlined),
+                        label: const Text('Ver pontos de apoio no mapa'),
+                      ),
+                      OutlinedButton.icon(
+                        onPressed: _call180,
+                        icon: const Icon(Icons.support_agent_rounded),
+                        label: const Text('Ligar para 180'),
+                      ),
+                    ];
+                    return wide
+                        ? Row(
+                            children: [
+                              Expanded(child: buttons[0]),
+                              const SizedBox(width: 12),
+                              Expanded(child: buttons[1]),
+                            ],
+                          )
+                        : Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              buttons[0],
+                              const SizedBox(height: 10),
+                              buttons[1],
+                            ],
+                          );
+                  },
+                ),
+                const SizedBox(height: 18),
+                const Text(
+                  'Se houver risco imediato, ligue para 190 e procure um local seguro. Não confronte o agressor para reunir documentos ou provas.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: AppColors.textMuted, fontSize: 13),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _InformationSection extends StatelessWidget {
+  const _InformationSection({
+    required this.icon,
+    required this.title,
+    required this.items,
+  });
+
+  final IconData icon;
+  final String title;
+  final List<String> items;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(22),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: const [
-                    Text('O que fazer em caso de emergência', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700)),
-                    SizedBox(height: 12),
-                    Text('1. Saia do local, se possível, e procure um lugar seguro, com pessoas de confiança ou em estabelecimento público.'),
-                    SizedBox(height: 8),
-                    Text('2. Registre a ocorrência e guarde provas, como mensagens, fotos, datas, horários, nomes e endereços.'),
-                    SizedBox(height: 8),
-                    Text('3. Se o risco for imediato, ligue para 190 ou 180 e procure atendimento oficial sem demora.'),
-                  ],
+            Row(
+              children: [
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: const BoxDecoration(
+                    color: AppColors.surfaceSoft,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(icon, color: AppColors.primary, size: 21),
                 ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: const [
-                    Text('Orientações e cuidados', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
-                    SizedBox(height: 12),
-                    Text('• Não tente confrontar o agressor diretamente se isso aumentar o risco.'),
-                    Text('• Salve evidências em segurança e mantenha o celular carregado.'),
-                    Text('• Avise uma pessoa de confiança por mensagem ou ligação, se houver segurança para isso.'),
-                    Text('• O mapa do app mostra a área aproximada do alerta em tempo real, e ajuda a sinalizar quem precisa de ajuda.'),
-                  ],
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    title,
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
                 ),
-              ),
+              ],
             ),
-            const SizedBox(height: 16),
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: const [
-                    Text('Números e canais', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
-                    SizedBox(height: 12),
-                    ListTile(leading: Icon(Icons.local_police), title: Text('190 - Polícia Militar'), subtitle: Text('Emergência e ajuda imediata')),
-                    ListTile(leading: Icon(Icons.phone), title: Text('180 - Central da Mulher'), subtitle: Text('Atendimento específico para violência contra a mulher')),
-                    ListTile(leading: Icon(Icons.report), title: Text('181 - Denúncia anônima'), subtitle: Text('Relate sem se identificar')),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
+            const SizedBox(height: 15),
+            for (final item in items)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 10),
+                child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Mapa em tempo real', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
-                    const SizedBox(height: 12),
-                    SizedBox(
-                      height: 320,
-                      child: FlutterMap(
-                        options: MapOptions(initialCenter: center, initialZoom: 11),
-                        children: [
-                          TileLayer(
-                            urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                            userAgentPackageName: 'org.protegeela.app',
-                          ),
-                          CircleLayer(
-                            circles: [
-                              for (final alert in _alerts)
-                                CircleMarker(
-                                  point: LatLng(alert.latitude, alert.longitude),
-                                  radius: alert.radiusMeters.toDouble(),
-                                  useRadiusInMeter: true,
-                                  color: AppColors.emergency.withOpacity(0.2),
-                                  borderColor: AppColors.emergency,
-                                  borderStrokeWidth: 2,
-                                ),
-                            ],
-                          ),
-                          MarkerLayer(
-                            markers: [
-                              for (final alert in _alerts)
-                                Marker(
-                                  point: LatLng(alert.latitude, alert.longitude),
-                                  width: 42,
-                                  height: 42,
-                                  child: const Icon(Icons.location_pin, color: AppColors.emergency, size: 38),
-                                ),
-                            ],
-                          ),
-                        ],
+                    const Padding(
+                      padding: EdgeInsets.only(top: 3),
+                      child: Icon(
+                        Icons.arrow_right_rounded,
+                        color: AppColors.secondary,
+                        size: 21,
                       ),
                     ),
-                    if (_loading)
-                      const Padding(
-                        padding: EdgeInsets.only(top: 12),
-                        child: Text('Atualizando alertas em tempo real...'),
-                      ),
+                    const SizedBox(width: 8),
+                    Expanded(child: Text(item)),
                   ],
                 ),
               ),
-            ),
-            const SizedBox(height: 16),
-            FilledButton.icon(
-              onPressed: () => context.go('/denuncia-anonima'),
-              icon: const Icon(Icons.arrow_forward),
-              label: const Text('Ir para denúncia anônima'),
-            ),
           ],
         ),
       ),

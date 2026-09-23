@@ -23,9 +23,14 @@ class EmailConfirmationPage extends StatelessWidget {
               children: [
                 const Icon(Icons.mark_email_read_outlined, size: 56),
                 const SizedBox(height: 16),
-                const Text('Enviamos um link de confirmacao. Depois de confirmar, entre para concluir seu perfil.', textAlign: TextAlign.center),
+                const Text(
+                  'Enviamos um link de confirmação. Depois de confirmar, entre para concluir seu perfil.',
+                  textAlign: TextAlign.center,
+                ),
                 const SizedBox(height: 20),
-                FilledButton(onPressed: () => context.go('/login'), child: const Text('Ir para login')),
+                FilledButton(
+                    onPressed: () => context.go('/login'),
+                    child: const Text('Ir para login')),
               ],
             ),
           ),

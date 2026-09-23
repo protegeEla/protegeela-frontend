@@ -1,6 +1,6 @@
 class Validators {
   static String? required(String? value, {String field = 'Campo'}) {
-    if (value == null || value.trim().isEmpty) return '$field e obrigatorio.';
+    if (value == null || value.trim().isEmpty) return '$field é obrigatório.';
     return null;
   }
 
@@ -8,7 +8,7 @@ class Validators {
     final base = required(value, field: 'E-mail');
     if (base != null) return base;
     final ok = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(value!.trim());
-    return ok ? null : 'Informe um e-mail valido.';
+    return ok ? null : 'Informe um e-mail válido.';
   }
 
   static String? password(String? value) {

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -28,11 +29,25 @@ class AuthRepository {
   }
 
   Future<void> signIn({required String email, required String password}) async {
-    await _client.auth.signInWithPassword(email: email.trim(), password: password);
+    await _client.auth
+        .signInWithPassword(email: email.trim(), password: password);
   }
 
   Future<void> resetPassword(String email) async {
-    await _client.auth.resetPasswordForEmail(email.trim());
+    final redirectTo = kIsWeb
+        ? Uri.base.replace(fragment: '/atualizar-senha').toString()
+        : null;
+    await _client.auth.resetPasswordForEmail(
+      email.trim(),
+      redirectTo: redirectTo,
+    );
+  }
+
+  Future<void> updatePassword(String password) async {
+    if (_client.auth.currentUser == null) {
+      throw const AuthException('Link de recuperação inválido ou expirado.');
+    }
+    await _client.auth.updateUser(UserAttributes(password: password));
   }
 
   Future<void> signOut() => _client.auth.signOut();

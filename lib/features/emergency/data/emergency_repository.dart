@@ -1,13 +1,25 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../../core/errors/app_exception.dart';
 import '../../../core/services/location_service.dart';
 import '../../../core/services/supabase_providers.dart';
 import '../../../shared/models/alert_location.dart';
 import '../../../shared/models/emergency_alert.dart';
+import '../../authentication/data/demo_session_repository.dart';
 
 final emergencyRepositoryProvider = Provider<EmergencyRepository>((ref) {
   return EmergencyRepository(ref.watch(supabaseClientProvider));
+});
+
+// Keep the request out of widget build(): rebuilding the page must not fetch
+// the same position again. Auto-dispose also clears coordinates on leaving it.
+final latestAlertLocationProvider = FutureProvider.autoDispose
+    .family<AlertLocation?, String>((ref, alertId) async {
+  ref.watch(currentUserProvider.select((user) => user?.id));
+  final demoActive = await ref.watch(demoSessionProvider.future);
+  if (demoActive) return null;
+  return ref.watch(emergencyRepositoryProvider).latestLocation(alertId);
 });
 
 class EmergencyRepository {
@@ -46,7 +58,14 @@ class EmergencyRepository {
         'location': location?.toJson(),
       },
     );
-    final data = response.data as Map<String, dynamic>;
+    final data = response.data;
+    if (data is! Map<String, dynamic> ||
+        data['alert'] is! Map<String, dynamic>) {
+      throw const AppException(
+        'Resposta inválida ao criar alerta.',
+        code: 'invalid_server_response',
+      );
+    }
     return EmergencyAlert.fromJson(data['alert'] as Map<String, dynamic>);
   }
 
@@ -60,7 +79,8 @@ class EmergencyRepository {
     );
   }
 
-  Future<void> closeAlert({required String alertId, required String reason, String? pin}) async {
+  Future<void> closeAlert(
+      {required String alertId, required String reason, String? pin}) async {
     await _client.functions.invoke(
       'close-emergency-alert',
       body: {'alert_id': alertId, 'reason': reason, 'pin': pin},

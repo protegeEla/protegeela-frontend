@@ -15,7 +15,8 @@ class EmergencyService {
   final String region;
   final bool isActive;
 
-  factory EmergencyService.fromJson(Map<String, dynamic> json) => EmergencyService(
+  factory EmergencyService.fromJson(Map<String, dynamic> json) =>
+      EmergencyService(
         id: json['id'] as String,
         name: json['name'] as String? ?? '',
         phone: json['phone'] as String? ?? '',

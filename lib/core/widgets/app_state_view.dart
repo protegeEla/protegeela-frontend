@@ -24,7 +24,9 @@ class AppStateView extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(title, style: Theme.of(context).textTheme.titleLarge, textAlign: TextAlign.center),
+              Text(title,
+                  style: Theme.of(context).textTheme.titleLarge,
+                  textAlign: TextAlign.center),
               const SizedBox(height: 8),
               Text(message, textAlign: TextAlign.center),
               if (actionLabel != null && onAction != null) ...[

@@ -12,7 +12,7 @@ class _SplashPageState extends State<SplashPage> {
   @override
   void initState() {
     super.initState();
-    Future<void>.delayed(const Duration(milliseconds: 800), () {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) context.go('/apresentacao');
     });
   }
@@ -37,18 +37,18 @@ class _SplashPageState extends State<SplashPage> {
               Container(
                 padding: const EdgeInsets.all(18),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.9),
+                  color: Colors.white.withValues(alpha: 0.9),
                   borderRadius: BorderRadius.circular(28),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.08),
+                      color: Colors.black.withValues(alpha: 0.08),
                       blurRadius: 18,
                       offset: const Offset(0, 10),
                     ),
                   ],
                 ),
                 child: Image.asset(
-                  'assets/config/img/scrennshort.png',
+                  'assets/config/img/logo.png',
                   width: 176,
                   height: 176,
                   fit: BoxFit.contain,

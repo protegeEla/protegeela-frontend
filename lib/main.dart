@@ -9,14 +9,15 @@ import 'core/config/app_config.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  try {
-    await dotenv.load(fileName: '.env');
-  } catch (_) {
-    // Local .env is optional. Open source users can prefer --dart-define.
-  }
+  // The local file is optional. In demo mode the app uses the safe fallback
+  // values from AppConfig, while real deployments can use --dart-define.
+  await dotenv.load(fileName: '.env', isOptional: true);
 
   final config = AppConfig.fromEnvironment();
-  await Supabase.initialize(url: config.supabaseUrl, anonKey: config.supabaseAnonKey);
+  await Supabase.initialize(
+    url: config.supabaseUrl,
+    publishableKey: config.supabaseAnonKey,
+  );
 
   runApp(
     ProviderScope(

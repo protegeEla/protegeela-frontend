@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../../core/errors/app_exception.dart';
 import '../../../core/services/supabase_providers.dart';
 import '../../authentication/data/demo_session_repository.dart';
 
@@ -8,7 +9,8 @@ final alertsMapRepositoryProvider = Provider<AlertsMapRepository>((ref) {
   return AlertsMapRepository(ref.watch(supabaseClientProvider));
 });
 
-final publicAlertMarkersProvider = FutureProvider<List<PublicAlertMarker>>((ref) async {
+final publicAlertMarkersProvider =
+    FutureProvider<List<PublicAlertMarker>>((ref) async {
   final demoActive = await ref.watch(demoSessionProvider.future);
   if (demoActive) {
     return [
@@ -45,7 +47,8 @@ class PublicAlertMarker {
   final int radiusMeters;
   final DateTime startedAt;
 
-  factory PublicAlertMarker.fromJson(Map<String, dynamic> json) => PublicAlertMarker(
+  factory PublicAlertMarker.fromJson(Map<String, dynamic> json) =>
+      PublicAlertMarker(
         id: json['id'] as String,
         alertType: json['alert_type'] as String,
         status: json['status'] as String,
@@ -69,9 +72,24 @@ class AlertsMapRepository {
   }) async {
     final response = await _client.functions.invoke(
       'get-public-alerts-in-bounds',
-      body: {'south': south, 'west': west, 'north': north, 'east': east, 'limit': 100},
+      body: {
+        'south': south,
+        'west': west,
+        'north': north,
+        'east': east,
+        'limit': 100
+      },
     );
-    final list = response.data as List<dynamic>;
-    return [for (final item in list) PublicAlertMarker.fromJson(item as Map<String, dynamic>)];
+    final data = response.data;
+    if (data is! List<dynamic>) {
+      throw const AppException(
+        'Resposta inválida ao carregar alertas.',
+        code: 'invalid_server_response',
+      );
+    }
+    return [
+      for (final item in data)
+        if (item is Map<String, dynamic>) PublicAlertMarker.fromJson(item),
+    ];
   }
 }

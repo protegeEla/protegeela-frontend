@@ -19,7 +19,9 @@ class _LocationIntroPageState extends State<LocationIntroPage> {
       final permission = await Geolocator.requestPermission();
       if (mounted && permission == LocationPermission.deniedForever) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Localizacao foi bloqueada. Voce pode liberar nas configuracoes do dispositivo.')),
+          const SnackBar(
+              content: Text(
+                  'Localizacao foi bloqueada. Voce pode liberar nas configuracoes do dispositivo.')),
         );
       }
     });
@@ -43,15 +45,21 @@ class _LocationIntroPageState extends State<LocationIntroPage> {
               children: [
                 const Icon(Icons.location_on_outlined, size: 56),
                 const SizedBox(height: 16),
-                Text('Permissao contextual', style: Theme.of(context).textTheme.headlineMedium, textAlign: TextAlign.center),
+                Text('Permissao contextual',
+                    style: Theme.of(context).textTheme.headlineMedium,
+                    textAlign: TextAlign.center),
                 const SizedBox(height: 12),
                 const Text(
-                  'Voce pode permitir localizacao agora ou somente ao pedir ajuda. Ausencia de GPS nunca bloqueia a criacao do alerta.',
+                  'Você pode permitir localização agora ou somente ao pedir ajuda. Ausência de GPS nunca bloqueia a criação do alerta.',
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 24),
-                FilledButton(onPressed: () => context.go('/cadastro'), child: const Text('Criar conta')),
-                TextButton(onPressed: () => context.go('/login'), child: const Text('Entrar')),
+                FilledButton(
+                    onPressed: () => context.go('/cadastro'),
+                    child: const Text('Criar conta')),
+                TextButton(
+                    onPressed: () => context.go('/login'),
+                    child: const Text('Entrar')),
               ],
             ),
           ),

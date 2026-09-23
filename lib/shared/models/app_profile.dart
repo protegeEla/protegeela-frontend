@@ -18,6 +18,23 @@ class AppProfile {
   String get firstName => fullName.trim().split(RegExp(r'\s+')).first;
   bool get isAdmin => role == 'admin';
 
+  AppProfile copyWith({
+    String? fullName,
+    String? phone,
+    String? role,
+    String? privacyMode,
+    String? avatarUrl,
+  }) {
+    return AppProfile(
+      id: id,
+      fullName: fullName ?? this.fullName,
+      phone: phone ?? this.phone,
+      role: role ?? this.role,
+      privacyMode: privacyMode ?? this.privacyMode,
+      avatarUrl: avatarUrl ?? this.avatarUrl,
+    );
+  }
+
   factory AppProfile.fromJson(Map<String, dynamic> json) => AppProfile(
         id: json['id'] as String,
         fullName: json['full_name'] as String? ?? '',

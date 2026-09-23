@@ -35,10 +35,13 @@ class EmergencyAlert {
         alertType: json['alert_type'] as String? ?? 'immediate_danger',
         status: json['status'] as String? ?? 'active',
         isSilent: json['is_silent'] as bool? ?? false,
-        locationStatus: json['location_status'] as String? ?? 'location_unavailable',
+        locationStatus:
+            json['location_status'] as String? ?? 'location_unavailable',
         startedAt: DateTime.parse(json['started_at'] as String),
         publicVisibility: json['public_visibility'] as bool? ?? true,
-        endedAt: json['ended_at'] == null ? null : DateTime.parse(json['ended_at'] as String),
+        endedAt: json['ended_at'] == null
+            ? null
+            : DateTime.parse(json['ended_at'] as String),
         endReason: json['end_reason'] as String?,
         publicLatitude: (json['public_latitude'] as num?)?.toDouble(),
         publicLongitude: (json['public_longitude'] as num?)?.toDouble(),
