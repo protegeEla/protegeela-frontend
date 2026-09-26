@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../../core/errors/app_exception.dart';
 import '../../../core/services/supabase_providers.dart';
 
 final adminRepositoryProvider = Provider<AdminRepository>((ref) {
@@ -28,7 +29,15 @@ class AdminRepository {
 
   Future<AdminDashboardMetrics> metrics() async {
     final response = await _client.rpc('admin_dashboard_metrics');
-    final row = (response as List<dynamic>).first as Map<String, dynamic>;
+    if (response is! List<dynamic> ||
+        response.isEmpty ||
+        response.first is! Map<String, dynamic>) {
+      throw const AppException(
+        'Resposta inválida ao carregar indicadores.',
+        code: 'invalid_server_response',
+      );
+    }
+    final row = response.first as Map<String, dynamic>;
     return AdminDashboardMetrics(
       totalAlerts: row['total_alerts'] as int? ?? 0,
       activeAlerts: row['active_alerts'] as int? ?? 0,

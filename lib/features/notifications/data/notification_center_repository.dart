@@ -3,7 +3,8 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../core/services/supabase_providers.dart';
 
-final notificationCenterRepositoryProvider = Provider<NotificationCenterRepository>((ref) {
+final notificationCenterRepositoryProvider =
+    Provider<NotificationCenterRepository>((ref) {
   return NotificationCenterRepository(ref.watch(supabaseClientProvider));
 });
 
@@ -13,6 +14,7 @@ class NotificationCenterRepository {
   final SupabaseClient _client;
 
   Future<void> markAlertNotificationsSent(String alertId) async {
-    await _client.functions.invoke('send-alert-notifications', body: {'alert_id': alertId});
+    await _client.functions
+        .invoke('send-alert-notifications', body: {'alert_id': alertId});
   }
 }

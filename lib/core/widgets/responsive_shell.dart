@@ -1,40 +1,52 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-class ResponsiveShell extends StatelessWidget {
+import '../../app/theme.dart';
+import '../../features/authentication/data/auth_repository.dart';
+import '../../features/authentication/data/demo_session_repository.dart';
+import 'protegeela_brand.dart';
+
+class ResponsiveShell extends ConsumerWidget {
   const ResponsiveShell({super.key, required this.child});
 
   final Widget child;
 
   static const destinations = [
-    _Destination('Inicio', Icons.home_outlined, '/home'),
-    _Destination('Mapa', Icons.map_outlined, '/mapa'),
-    _Destination('Rede', Icons.people_outline, '/contatos'),
-    _Destination('Perfil', Icons.person_outline, '/perfil'),
+    _Destination('Início', Icons.home_outlined, Icons.home_rounded, '/home'),
+    _Destination(
+        'Mapa e apoio', Icons.map_outlined, Icons.map_rounded, '/mapa'),
+    _Destination(
+      'Rede de apoio',
+      Icons.people_outline_rounded,
+      Icons.people_rounded,
+      '/contatos',
+    ),
+    _Destination(
+      'Perfil',
+      Icons.person_outline_rounded,
+      Icons.person_rounded,
+      '/perfil',
+    ),
   ];
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final width = MediaQuery.sizeOf(context).width;
     final location = GoRouterState.of(context).uri.path;
-    final index = destinations.indexWhere((item) => location.startsWith(item.path));
+    final index = destinations.indexWhere(
+      (item) => location.startsWith(item.path),
+    );
     final selectedIndex = index < 0 ? 0 : index;
 
     if (width >= 900) {
       return Scaffold(
         body: Row(
           children: [
-            NavigationRail(
+            _DesktopNavigation(
               selectedIndex: selectedIndex,
-              onDestinationSelected: (value) => context.go(destinations[value].path),
-              labelType: NavigationRailLabelType.all,
-              destinations: [
-                for (final item in destinations)
-                  NavigationRailDestination(
-                    icon: Icon(item.icon),
-                    label: Text(item.label),
-                  ),
-              ],
+              onSelected: (value) => context.go(destinations[value].path),
+              onSignOut: () => _signOut(context, ref),
             ),
             const VerticalDivider(width: 1),
             Expanded(child: child),
@@ -45,57 +57,97 @@ class ResponsiveShell extends StatelessWidget {
 
     return Scaffold(
       body: child,
-      bottomNavigationBar: _PillNavigationBar(
-        destinations: destinations,
+      bottomNavigationBar: _MobileNavigation(
         selectedIndex: selectedIndex,
         onSelected: (value) => context.go(destinations[value].path),
       ),
     );
   }
+
+  Future<void> _signOut(BuildContext context, WidgetRef ref) async {
+    final demoActive = await ref.read(demoSessionProvider.future);
+    if (demoActive) {
+      await ref.read(demoSessionRepositoryProvider).end();
+      ref.invalidate(demoSessionProvider);
+    } else {
+      await ref.read(authRepositoryProvider).signOut();
+    }
+    if (context.mounted) context.go('/login');
+  }
 }
 
-class _PillNavigationBar extends StatelessWidget {
-  const _PillNavigationBar({
-    required this.destinations,
+class _DesktopNavigation extends StatelessWidget {
+  const _DesktopNavigation({
     required this.selectedIndex,
     required this.onSelected,
+    required this.onSignOut,
   });
 
-  final List<_Destination> destinations;
   final int selectedIndex;
   final ValueChanged<int> onSelected;
+  final VoidCallback onSignOut;
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-
     return SafeArea(
-      minimum: const EdgeInsets.fromLTRB(16, 8, 16, 14),
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(999),
-          border: Border.all(color: scheme.outlineVariant),
-          boxShadow: const [
-            BoxShadow(
-              color: Color(0x22000000),
-              blurRadius: 18,
-              offset: Offset(0, 8),
-            ),
-          ],
-        ),
-        child: SizedBox(
-          height: 64,
-          child: Row(
+      child: SizedBox(
+        width: 220,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(22, 26, 22, 20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              for (var index = 0; index < destinations.length; index++)
-                Expanded(
-                  child: _PillNavigationItem(
-                    destination: destinations[index],
-                    selected: selectedIndex == index,
-                    onTap: () => onSelected(index),
+              const ProtegeElaBrand(compact: true),
+              const SizedBox(height: 38),
+              for (var index = 0;
+                  index < ResponsiveShell.destinations.length;
+                  index++) ...[
+                _DesktopNavigationItem(
+                  destination: ResponsiveShell.destinations[index],
+                  selected: selectedIndex == index,
+                  onTap: () => onSelected(index),
+                ),
+                const SizedBox(height: 7),
+              ],
+              const Spacer(),
+              Material(
+                color: Colors.transparent,
+                borderRadius: BorderRadius.circular(11),
+                child: InkWell(
+                  onTap: onSignOut,
+                  borderRadius: BorderRadius.circular(11),
+                  child: const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 13, vertical: 12),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.logout_rounded,
+                          color: AppColors.textMuted,
+                          size: 21,
+                        ),
+                        SizedBox(width: 12),
+                        Text(
+                          'Sair',
+                          style: TextStyle(
+                            color: AppColors.textMuted,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
+              ),
+              const SizedBox(height: 22),
+              const Text(
+                'Mais mulheres\nmais seguras  ♡',
+                style: TextStyle(
+                  color: AppColors.textMuted,
+                  fontSize: 12,
+                  height: 1.5,
+                ),
+              ),
             ],
           ),
         ),
@@ -104,8 +156,8 @@ class _PillNavigationBar extends StatelessWidget {
   }
 }
 
-class _PillNavigationItem extends StatelessWidget {
-  const _PillNavigationItem({
+class _DesktopNavigationItem extends StatelessWidget {
+  const _DesktopNavigationItem({
     required this.destination,
     required this.selected,
     required this.onTap,
@@ -117,49 +169,34 @@ class _PillNavigationItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    final color = selected ? scheme.primary : scheme.onSurfaceVariant;
-
-    return Tooltip(
-      message: destination.label,
+    final color = selected ? AppColors.primary : AppColors.textMuted;
+    return Material(
+      color: selected ? AppColors.accent : Colors.transparent,
+      borderRadius: BorderRadius.circular(11),
       child: InkWell(
         onTap: onTap,
-        customBorder: const StadiumBorder(),
-        child: Semantics(
-          button: true,
-          selected: selected,
-          label: destination.label,
-          child: Center(
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 180),
-              curve: Curves.easeOut,
-              padding: EdgeInsets.symmetric(horizontal: selected ? 12 : 8, vertical: 8),
-              decoration: BoxDecoration(
-                color: selected ? scheme.primary.withOpacity(0.12) : Colors.transparent,
-                borderRadius: BorderRadius.circular(999),
+        borderRadius: BorderRadius.circular(11),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 12),
+          child: Row(
+            children: [
+              Icon(
+                selected ? destination.selectedIcon : destination.icon,
+                color: color,
+                size: 21,
               ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(destination.icon, color: color, size: 24),
-                  if (selected) ...[
-                    const SizedBox(width: 6),
-                    Flexible(
-                      child: Text(
-                        destination.label,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          color: color,
-                          fontWeight: FontWeight.w700,
-                          fontSize: 13,
-                        ),
-                      ),
-                    ),
-                  ],
-                ],
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  destination.label,
+                  style: TextStyle(
+                    color: color,
+                    fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
+                    fontSize: 14,
+                  ),
+                ),
               ),
-            ),
+            ],
           ),
         ),
       ),
@@ -167,10 +204,38 @@ class _PillNavigationItem extends StatelessWidget {
   }
 }
 
+class _MobileNavigation extends StatelessWidget {
+  const _MobileNavigation({
+    required this.selectedIndex,
+    required this.onSelected,
+  });
+
+  final int selectedIndex;
+  final ValueChanged<int> onSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    return NavigationBar(
+      height: 72,
+      selectedIndex: selectedIndex,
+      onDestinationSelected: onSelected,
+      destinations: [
+        for (final item in ResponsiveShell.destinations)
+          NavigationDestination(
+            icon: Icon(item.icon),
+            selectedIcon: Icon(item.selectedIcon),
+            label: item.label == 'Rede de apoio' ? 'Rede' : item.label,
+          ),
+      ],
+    );
+  }
+}
+
 class _Destination {
-  const _Destination(this.label, this.icon, this.path);
+  const _Destination(this.label, this.icon, this.selectedIcon, this.path);
 
   final String label;
   final IconData icon;
+  final IconData selectedIcon;
   final String path;
 }

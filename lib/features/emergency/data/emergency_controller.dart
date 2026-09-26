@@ -11,7 +11,8 @@ import '../domain/emergency_state.dart';
 import 'emergency_repository.dart';
 import 'pending_alert_store.dart';
 
-final emergencyControllerProvider = AsyncNotifierProvider<EmergencyController, EmergencyState>(
+final emergencyControllerProvider =
+    AsyncNotifierProvider<EmergencyController, EmergencyState>(
   EmergencyController.new,
 );
 
@@ -26,23 +27,29 @@ class EmergencyController extends AsyncNotifier<EmergencyState> {
     return EmergencyState(activeAlert: alert);
   }
 
-  Future<void> createAlert({String alertType = 'immediate_danger', bool isSilent = false}) async {
+  Future<void> createAlert(
+      {String alertType = 'immediate_danger', bool isSilent = false}) async {
     final current = state.valueOrNull;
-    if (current?.isSending == true || current?.activeAlert?.isActive == true) return;
+    if (current?.isSending == true || current?.activeAlert?.isActive == true) {
+      return;
+    }
 
     final requestId = _uuid.v4();
-    state = AsyncData(EmergencyState(isSending: true, clientRequestId: requestId));
+    state =
+        AsyncData(EmergencyState(isSending: true, clientRequestId: requestId));
 
     final demoActive = await ref.read(demoSessionProvider.future);
     if (demoActive) {
       double publicLatitude = -3.119;
       double publicLongitude = -60.022;
       try {
-        final location = await ref.read(locationServiceProvider).captureCurrent();
+        final location =
+            await ref.read(locationServiceProvider).captureCurrent();
         publicLatitude = location.latitude;
         publicLongitude = location.longitude;
       } catch (_) {
-        // Mantém a posição padrão do protótipo caso a geolocalização não esteja disponível.
+        // Mantém a posição padrão da demonstração quando a
+        // geolocalização não está disponível.
       }
 
       final alert = EmergencyAlert(
@@ -61,7 +68,8 @@ class EmergencyController extends AsyncNotifier<EmergencyState> {
       state = AsyncData(
         EmergencyState(
           activeAlert: alert,
-          lastMessage: 'Alerta temporario criado apenas neste navegador. Nenhum contato real foi avisado.',
+          lastMessage:
+              'Alerta temporário criado apenas neste navegador. Nenhum contato real foi avisado.',
         ),
       );
       return;
@@ -86,11 +94,16 @@ class EmergencyController extends AsyncNotifier<EmergencyState> {
           );
       await ref.read(notificationServiceProvider).notifyAlertCreated(alert.id);
       try {
-        await ref.read(notificationCenterRepositoryProvider).markAlertNotificationsSent(alert.id);
+        await ref
+            .read(notificationCenterRepositoryProvider)
+            .markAlertNotificationsSent(alert.id);
       } catch (_) {
-        await ref.read(notificationServiceProvider).notifyAlertCreated('notification_fallback:${alert.id}');
+        await ref
+            .read(notificationServiceProvider)
+            .notifyAlertCreated('notification_fallback:${alert.id}');
       }
-      state = AsyncData(EmergencyState(activeAlert: alert, lastMessage: 'Alerta confirmado pelo servidor.'));
+      state = AsyncData(EmergencyState(
+          activeAlert: alert, lastMessage: 'Alerta confirmado pelo servidor.'));
     } catch (_) {
       await ref.read(pendingAlertStoreProvider).save(
             PendingAlert(
@@ -104,7 +117,8 @@ class EmergencyController extends AsyncNotifier<EmergencyState> {
         EmergencyState(
           isSending: false,
           clientRequestId: requestId,
-          lastMessage: 'Sem confirmacao do servidor. Tente sincronizar assim que a conexao voltar.',
+          lastMessage:
+              'Sem confirmação do servidor. Tente sincronizar assim que a conexão voltar.',
         ),
       );
       rethrow;
@@ -116,10 +130,14 @@ class EmergencyController extends AsyncNotifier<EmergencyState> {
     if (alert == null) return;
     final demoActive = await ref.read(demoSessionProvider.future);
     if (demoActive) {
-      state = const AsyncData(EmergencyState(lastMessage: 'Alerta temporario encerrado.'));
+      state = const AsyncData(
+        EmergencyState(lastMessage: 'Alerta temporário encerrado.'),
+      );
       return;
     }
-    await ref.read(emergencyRepositoryProvider).closeAlert(alertId: alert.id, reason: reason, pin: pin);
+    await ref
+        .read(emergencyRepositoryProvider)
+        .closeAlert(alertId: alert.id, reason: reason, pin: pin);
     state = const AsyncData(EmergencyState(lastMessage: 'Alerta encerrado.'));
   }
 
@@ -135,6 +153,7 @@ class EmergencyController extends AsyncNotifier<EmergencyState> {
         );
     await ref.read(pendingAlertStoreProvider).clear();
     await ref.read(notificationServiceProvider).notifyAlertCreated(alert.id);
-    state = AsyncData(EmergencyState(activeAlert: alert, lastMessage: 'Alerta pendente sincronizado.'));
+    state = AsyncData(EmergencyState(
+        activeAlert: alert, lastMessage: 'Alerta pendente sincronizado.'));
   }
 }

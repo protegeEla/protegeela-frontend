@@ -3,7 +3,8 @@ import 'package:geolocator/geolocator.dart';
 
 import '../errors/app_exception.dart';
 
-final locationServiceProvider = Provider<LocationService>((ref) => LocationService());
+final locationServiceProvider =
+    Provider<LocationService>((ref) => LocationService());
 
 class LocationCapture {
   const LocationCapture({
@@ -36,7 +37,10 @@ class LocationService {
   Future<LocationCapture> captureCurrent() async {
     final enabled = await Geolocator.isLocationServiceEnabled();
     if (!enabled) {
-      throw const AppException('Localizacao indisponivel neste dispositivo.', code: 'location_unavailable');
+      throw const AppException(
+        'Localização indisponível neste dispositivo.',
+        code: 'location_unavailable',
+      );
     }
 
     var permission = await Geolocator.checkPermission();
@@ -44,8 +48,12 @@ class LocationService {
       permission = await Geolocator.requestPermission();
     }
 
-    if (permission == LocationPermission.denied || permission == LocationPermission.deniedForever) {
-      throw const AppException('Permissao de localizacao negada.', code: 'location_denied');
+    if (permission == LocationPermission.denied ||
+        permission == LocationPermission.deniedForever) {
+      throw const AppException(
+        'Permissão de localização negada.',
+        code: 'location_denied',
+      );
     }
 
     final position = await Geolocator.getCurrentPosition(

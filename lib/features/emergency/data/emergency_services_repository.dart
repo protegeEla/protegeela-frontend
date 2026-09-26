@@ -4,7 +4,8 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/services/supabase_providers.dart';
 import '../../../shared/models/emergency_service.dart';
 
-final emergencyServicesRepositoryProvider = Provider<EmergencyServicesRepository>((ref) {
+final emergencyServicesRepositoryProvider =
+    Provider<EmergencyServicesRepository>((ref) {
   return EmergencyServicesRepository(ref.watch(supabaseClientProvider));
 });
 

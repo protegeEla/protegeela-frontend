@@ -17,7 +17,10 @@ class AdminDashboardPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final profile = ref.watch(currentProfileProvider).valueOrNull;
     if (profile?.isAdmin != true) {
-      return const Scaffold(body: AppStateView(title: 'Acesso restrito', message: 'Somente administradores podem acessar este painel.'));
+      return const Scaffold(
+          body: AppStateView(
+              title: 'Acesso restrito',
+              message: 'Somente administradores podem acessar este painel.'));
     }
 
     final metrics = ref.watch(adminMetricsProvider);
@@ -28,7 +31,12 @@ class AdminDashboardPage extends ConsumerWidget {
       ),
       body: metrics.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (_, __) => AppStateView(title: 'Erro', message: 'Nao foi possivel carregar indicadores.', actionLabel: 'Tentar novamente', onAction: () => ref.invalidate(adminMetricsProvider)),
+        error: (_, __) => AppStateView(
+          title: 'Erro',
+          message: 'Não foi possível carregar indicadores.',
+          actionLabel: 'Tentar novamente',
+          onAction: () => ref.invalidate(adminMetricsProvider),
+        ),
         data: (data) => GridView.count(
           padding: const EdgeInsets.all(16),
           crossAxisCount: MediaQuery.sizeOf(context).width >= 900 ? 4 : 2,
@@ -38,7 +46,8 @@ class AdminDashboardPage extends ConsumerWidget {
             _Metric(label: 'Alertas', value: data.totalAlerts),
             _Metric(label: 'Ativos', value: data.activeAlerts),
             _Metric(label: 'Encerrados', value: data.closedAlerts),
-            _Metric(label: 'Pontos verificados', value: data.verifiedSupportPoints),
+            _Metric(
+                label: 'Pontos verificados', value: data.verifiedSupportPoints),
           ],
         ),
       ),

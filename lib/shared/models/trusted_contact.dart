@@ -23,6 +23,30 @@ class TrustedContact {
   final bool canViewExactLocation;
   final bool isPrimary;
 
+  TrustedContact copyWith({
+    String? name,
+    String? phone,
+    String? email,
+    bool clearEmail = false,
+    String? relationship,
+    String? invitationStatus,
+    bool? canViewExactLocation,
+    bool? isPrimary,
+  }) {
+    return TrustedContact(
+      id: id,
+      ownerUserId: ownerUserId,
+      contactUserId: contactUserId,
+      name: name ?? this.name,
+      email: clearEmail ? null : email ?? this.email,
+      phone: phone ?? this.phone,
+      relationship: relationship ?? this.relationship,
+      invitationStatus: invitationStatus ?? this.invitationStatus,
+      canViewExactLocation: canViewExactLocation ?? this.canViewExactLocation,
+      isPrimary: isPrimary ?? this.isPrimary,
+    );
+  }
+
   factory TrustedContact.fromJson(Map<String, dynamic> json) => TrustedContact(
         id: json['id'] as String,
         ownerUserId: json['owner_user_id'] as String,
