@@ -9,6 +9,8 @@ import '../../../core/services/location_service.dart';
 import '../../../core/widgets/app_back_button.dart';
 import '../../../core/widgets/app_state_view.dart';
 import '../../authentication/data/demo_session_repository.dart';
+import '../../notifications/data/notification_center_repository.dart';
+import '../../trusted_contacts/data/trusted_contacts_repository.dart';
 import '../data/emergency_controller.dart';
 import '../data/emergency_repository.dart';
 import '../data/emergency_services_repository.dart';
@@ -73,6 +75,12 @@ class _ActiveAlertPageState extends ConsumerState<ActiveAlertPage> {
           final location = locationState.valueOrNull;
           final demo = alert.id.startsWith('demo-alert-') ||
               ref.watch(demoSessionProvider).valueOrNull == true;
+          final contactsState = ref.watch(trustedContactsProvider);
+          final notificationState = demo
+              ? const AsyncData<AlertNotificationSummary>(
+                  AlertNotificationSummary(status: 'demo', sent: false),
+                )
+              : ref.watch(alertNotificationSummaryProvider(alert.id));
           final center = LatLng(
             location?.latitude ??
                 alert.publicLatitude ??
@@ -89,6 +97,17 @@ class _ActiveAlertPageState extends ConsumerState<ActiveAlertPage> {
             busy: _busy,
             locationLoading: locationState.isLoading,
             locationError: locationState.hasError,
+            contacts: contactsState.valueOrNull ?? const [],
+            contactsLoading: contactsState.isLoading,
+            contactsError: contactsState.hasError,
+            notification: notificationState.valueOrNull,
+            notificationLoading: notificationState.isLoading,
+            notificationError: notificationState.hasError,
+            onRefreshStatus: () {
+              ref.invalidate(alertNotificationSummaryProvider(alert.id));
+              ref.invalidate(trustedContactsProvider);
+              ref.invalidate(latestAlertLocationProvider(alert.id));
+            },
             onCall: () => _perform(() => _confirmCall(context, ref)),
             onUpdate: () =>
                 _perform(() => _updateLocation(context, ref, alert.id)),

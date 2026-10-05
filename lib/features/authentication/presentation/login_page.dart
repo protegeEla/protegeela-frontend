@@ -3,7 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../app/theme.dart';
+import '../../../core/errors/app_exception.dart';
 import '../../../core/utils/validators.dart';
+import '../../../core/utils/phone_number_formatter.dart';
 import '../../../core/widgets/protegeela_brand.dart';
 import '../data/auth_repository.dart';
 import '../data/demo_session_repository.dart';
@@ -36,8 +38,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   bool _obscureConfirmation = true;
   bool _acceptedTerms = false;
   bool _acceptedPrivacy = false;
+  bool _rememberMe = false;
   bool _loading = false;
-  bool _demoLoading = false;
   String? _error;
 
   bool get _registering => widget.initialView == AuthenticationView.register;
@@ -62,12 +64,17 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       await ref.read(authRepositoryProvider).signIn(
             email: _email.text,
             password: _password.text,
+            rememberMe: _rememberMe,
           );
+      await ref.read(demoSessionRepositoryProvider).end();
+      ref.invalidate(demoSessionProvider);
       if (mounted) context.go('/home');
-    } catch (_) {
+    } catch (error) {
       if (mounted) {
         setState(() {
-          _error = 'Não foi possível entrar. Confira o e-mail e a senha.';
+          _error = error is AppException
+              ? error.message
+              : 'Não foi possível entrar. Confira o e-mail e a senha.';
         });
       }
     } finally {
@@ -94,26 +101,22 @@ class _LoginPageState extends ConsumerState<LoginPage> {
             phone: _phone.text,
             password: _password.text,
           );
-      if (mounted) context.go('/confirmar-email');
-    } catch (_) {
+      await ref.read(demoSessionRepositoryProvider).end();
+      ref.invalidate(demoSessionProvider);
+      if (mounted) {
+        context.go('/home');
+      }
+    } catch (error) {
       if (mounted) {
         setState(() {
-          _error = 'Não foi possível criar sua conta. Tente novamente.';
+          _error = error is AppException
+              ? error.message
+              : 'Não foi possível criar sua conta. Tente novamente.';
         });
       }
     } finally {
       if (mounted) setState(() => _loading = false);
     }
-  }
-
-  Future<void> _startDemoSession() async {
-    setState(() {
-      _demoLoading = true;
-      _error = null;
-    });
-    await ref.read(demoSessionRepositoryProvider).start();
-    ref.invalidate(demoSessionProvider);
-    if (mounted) context.go('/home');
   }
 
   @override
@@ -274,9 +277,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
               ],
               SizedBox(height: _registering ? 12 : 18),
               FilledButton.icon(
-                onPressed: _loading || _demoLoading
-                    ? null
-                    : (_registering ? _signUp : _signIn),
+                onPressed: _loading ? null : (_registering ? _signUp : _signIn),
                 iconAlignment: IconAlignment.end,
                 icon: _loading
                     ? const SizedBox.square(
@@ -303,24 +304,6 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                       )
                     : null,
               ),
-              if (!_registering) ...[
-                const SizedBox(height: 12),
-                OutlinedButton.icon(
-                  onPressed:
-                      _loading || _demoLoading ? null : _startDemoSession,
-                  icon: _demoLoading
-                      ? const SizedBox.square(
-                          dimension: 18,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : const Icon(Icons.person_outline_rounded),
-                  label: Text(
-                    _demoLoading
-                        ? 'Abrindo demonstração...'
-                        : 'Entrar temporariamente',
-                  ),
-                ),
-              ],
               SizedBox(height: _registering ? 14 : 20),
               AuthenticationModeSwitch(registering: _registering),
               SizedBox(height: _registering ? 14 : 20),
@@ -392,9 +375,35 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       const SizedBox(height: 8),
       Row(
         children: [
-          const Spacer(),
+          Checkbox(
+            value: _rememberMe,
+            onChanged: _loading
+                ? null
+                : (value) => setState(() => _rememberMe = value ?? false),
+            visualDensity: VisualDensity.compact,
+            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          ),
+          const SizedBox(width: 4),
+          Expanded(
+            child: InkWell(
+              onTap: _loading
+                  ? null
+                  : () => setState(() => _rememberMe = !_rememberMe),
+              borderRadius: BorderRadius.circular(8),
+              child: const Padding(
+                padding: EdgeInsets.symmetric(vertical: 12),
+                child: Text(
+                  'Lembrar de mim',
+                  style: TextStyle(
+                    color: AppColors.textMuted,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ),
+          ),
           TextButton(
-            onPressed: () => context.go('/recuperar-senha'),
+            onPressed: null,
             style: TextButton.styleFrom(
               padding: EdgeInsets.zero,
               minimumSize: const Size(0, 42),
@@ -434,6 +443,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
         label: 'Telefone',
         icon: Icons.phone_outlined,
         keyboardType: TextInputType.phone,
+        inputFormatters: const [BrazilianPhoneInputFormatter()],
         action: TextInputAction.next,
         autofillHints: const [AutofillHints.telephoneNumber],
         validator: Validators.phone,

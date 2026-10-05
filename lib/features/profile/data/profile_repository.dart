@@ -1,13 +1,13 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
-import '../../../core/errors/app_exception.dart';
-import '../../../core/services/supabase_providers.dart';
+import '../../../core/services/api_client.dart';
+import '../../../core/services/auth_providers.dart';
+import '../../../core/utils/phone_number_formatter.dart';
 import '../../../shared/models/app_profile.dart';
 import '../../authentication/data/demo_session_repository.dart';
 
 final profileRepositoryProvider = Provider<ProfileRepository>((ref) {
-  return ProfileRepository(ref.watch(supabaseClientProvider));
+  return ProfileRepository(ref.watch(apiClientProvider));
 });
 
 final demoProfileProvider = StateProvider.autoDispose<AppProfile>(
@@ -30,16 +30,12 @@ final currentProfileProvider = FutureProvider<AppProfile?>((ref) async {
 });
 
 class ProfileRepository {
-  const ProfileRepository(this._client);
-
-  final SupabaseClient _client;
+  const ProfileRepository(this._api);
+  final ApiClient _api;
 
   Future<AppProfile?> currentProfile() async {
-    final userId = _client.auth.currentUser?.id;
-    if (userId == null) return null;
-    final data =
-        await _client.from('profiles').select().eq('id', userId).maybeSingle();
-    return data == null ? null : AppProfile.fromJson(data);
+    if (!_api.isAuthenticated) return null;
+    return AppProfile.fromJson(await _api.request('GET', '/profile'));
   }
 
   Future<void> upsertProfile({
@@ -47,30 +43,15 @@ class ProfileRepository {
     required String phone,
     String privacyMode = 'standard',
   }) async {
-    final userId = _requireUserId();
-    await _client.from('profiles').upsert({
-      'id': userId,
+    await _api.request('PUT', '/profile', body: {
       'full_name': fullName.trim(),
-      'phone': phone.trim(),
+      'phone': PhoneNumberFormatter.digitsOnly(phone),
       'privacy_mode': privacyMode,
     });
   }
 
   Future<void> updatePrivacyMode(String privacyMode) async {
-    final userId = _requireUserId();
-    await _client
-        .from('profiles')
-        .update({'privacy_mode': privacyMode}).eq('id', userId);
-  }
-
-  String _requireUserId() {
-    final userId = _client.auth.currentUser?.id;
-    if (userId == null) {
-      throw const AppException(
-        'Sessão expirada. Entre novamente.',
-        code: 'authentication_required',
-      );
-    }
-    return userId;
+    await _api.request('PATCH', '/profile/privacy',
+        body: {'privacy_mode': privacyMode});
   }
 }

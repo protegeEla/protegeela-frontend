@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../app/theme.dart';
 import '../../../core/utils/validators.dart';
+import '../../../core/utils/phone_number_formatter.dart';
 import '../../../shared/models/trusted_contact.dart';
 
 class ContactFormValue {
@@ -10,6 +11,7 @@ class ContactFormValue {
     required this.phone,
     required this.email,
     required this.relationship,
+    required this.preferredChannel,
     required this.canViewExactLocation,
   });
 
@@ -17,6 +19,7 @@ class ContactFormValue {
   final String phone;
   final String email;
   final String relationship;
+  final String preferredChannel;
   final bool canViewExactLocation;
 }
 
@@ -58,7 +61,7 @@ Future<bool> showRemoveContactDialog(
         ],
       ),
       content: Text(
-        '${contact.name} deixará de receber seus alertas e sua localização. '
+        '${contact.name} será removido da sua lista de contatos. '
         'Essa ação não pode ser desfeita.',
       ),
       actions: [
@@ -93,6 +96,7 @@ class _ContactFormDialogState extends State<_ContactFormDialog> {
   late final TextEditingController _phone;
   late final TextEditingController _email;
   late String _relationship;
+  late String _preferredChannel;
   late bool _exactLocation;
 
   bool get _editing => widget.contact != null;
@@ -102,12 +106,14 @@ class _ContactFormDialogState extends State<_ContactFormDialog> {
     super.initState();
     final contact = widget.contact;
     _name = TextEditingController(text: contact?.name ?? '');
-    _phone = TextEditingController(text: contact?.phone ?? '');
+    _phone = TextEditingController(
+        text: PhoneNumberFormatter.format(contact?.phone ?? ''));
     _email = TextEditingController(text: contact?.email ?? '');
     _relationship = contact?.relationship == 'demo'
         ? 'amiga'
         : contact?.relationship ?? 'familia';
-    _exactLocation = contact?.canViewExactLocation ?? true;
+    _preferredChannel = contact?.preferredChannel ?? 'whatsapp';
+    _exactLocation = contact?.canViewExactLocation ?? false;
   }
 
   @override
@@ -124,9 +130,10 @@ class _ContactFormDialogState extends State<_ContactFormDialog> {
       context,
       ContactFormValue(
         name: _name.text.trim(),
-        phone: _phone.text.trim(),
+        phone: PhoneNumberFormatter.digitsOnly(_phone.text),
         email: _email.text.trim(),
         relationship: _relationship,
+        preferredChannel: _preferredChannel,
         canViewExactLocation: _exactLocation,
       ),
     );
@@ -171,6 +178,7 @@ class _ContactFormDialogState extends State<_ContactFormDialog> {
                 TextFormField(
                   controller: _phone,
                   keyboardType: TextInputType.phone,
+                  inputFormatters: const [BrazilianPhoneInputFormatter()],
                   textInputAction: TextInputAction.next,
                   decoration: const InputDecoration(
                     labelText: 'Telefone',
@@ -198,6 +206,26 @@ class _ContactFormDialogState extends State<_ContactFormDialog> {
                 _RelationshipSelector(
                   value: _relationship,
                   onChanged: (value) => setState(() => _relationship = value),
+                ),
+                const SizedBox(height: 13),
+                DropdownButtonFormField<String>(
+                  initialValue: _preferredChannel,
+                  decoration: const InputDecoration(
+                    labelText: 'Canal preferido',
+                    prefixIcon: Icon(Icons.send_outlined),
+                  ),
+                  items: const [
+                    DropdownMenuItem(
+                        value: 'whatsapp', child: Text('WhatsApp')),
+                    DropdownMenuItem(value: 'sms', child: Text('SMS')),
+                    DropdownMenuItem(value: 'email', child: Text('E-mail')),
+                    DropdownMenuItem(value: 'call', child: Text('Ligação')),
+                  ],
+                  onChanged: (value) {
+                    if (value != null) {
+                      setState(() => _preferredChannel = value);
+                    }
+                  },
                 ),
                 if (!_editing) ...[
                   const SizedBox(height: 14),
@@ -283,7 +311,7 @@ class _ContactAccessDialogState extends State<_ContactAccessDialog> {
                   SizedBox(width: 10),
                   Expanded(
                     child: Text(
-                      'A localização exata só é compartilhada enquanto houver um alerta ativo.',
+                      'Esta preferência fica salva. O envio de localização aos contatos ainda não está disponível.',
                       style: TextStyle(fontSize: 12.5),
                     ),
                   ),
@@ -338,7 +366,7 @@ class _LocationPermissionTile extends StatelessWidget {
                 ),
                 SizedBox(height: 2),
                 Text(
-                  'Compartilhar localização exata',
+                  'Permitir compartilhamento quando disponível',
                   style: TextStyle(
                     color: AppColors.textMuted,
                     fontSize: 11.5,

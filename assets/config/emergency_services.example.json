@@ -1,9 +1,0 @@
-[
-  {
-    "name": "Servico de emergencia demonstrativo",
-    "phone": "000",
-    "description": "Numero ficticio para ambiente de demonstracao. Substitua por dados oficiais na area administrativa.",
-    "region": "demo",
-    "is_active": true
-  }
-]

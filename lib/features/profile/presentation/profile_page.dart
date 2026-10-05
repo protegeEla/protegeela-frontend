@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../app/theme.dart';
+import '../../../core/utils/phone_number_formatter.dart';
 import '../../../core/widgets/app_state_view.dart';
 import '../../../core/widgets/protegeela_brand.dart';
 import '../../../shared/models/app_profile.dart';
@@ -65,7 +66,7 @@ class ProfilePage extends ConsumerWidget {
                             return _ProfileContent(
                               profile: value,
                               onPrivacyChanged: (enabled) =>
-                                  _updatePrivacyMode(ref, enabled),
+                                  _updatePrivacyMode(context, ref, enabled),
                               onSignOut: () => _signOut(context, ref),
                             );
                           },
@@ -83,6 +84,7 @@ class ProfilePage extends ConsumerWidget {
   }
 
   Future<void> _updatePrivacyMode(
+    BuildContext context,
     WidgetRef ref,
     bool enabled,
   ) async {
@@ -95,8 +97,18 @@ class ProfilePage extends ConsumerWidget {
       );
       return;
     }
-    await ref.read(profileRepositoryProvider).updatePrivacyMode(privacyMode);
-    ref.invalidate(currentProfileProvider);
+    try {
+      await ref.read(profileRepositoryProvider).updatePrivacyMode(privacyMode);
+      ref.invalidate(currentProfileProvider);
+    } catch (_) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+              content: Text(
+                  'Não foi possível salvar a preferência. Tente novamente.')),
+        );
+      }
+    }
   }
 
   Future<void> _signOut(BuildContext context, WidgetRef ref) async {
@@ -105,7 +117,17 @@ class ProfilePage extends ConsumerWidget {
       await ref.read(demoSessionRepositoryProvider).end();
       ref.invalidate(demoSessionProvider);
     } else {
-      await ref.read(authRepositoryProvider).signOut();
+      try {
+        await ref.read(authRepositoryProvider).signOut();
+      } catch (_) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+                content:
+                    Text('Não foi possível confirmar a saída no servidor.')),
+          );
+        }
+      }
     }
     if (context.mounted) context.go('/login');
   }
@@ -159,7 +181,7 @@ class _ProfileContent extends StatelessWidget {
                       Text(
                         profile.id == 'demo-user'
                             ? 'Conta de demonstração'
-                            : profile.phone,
+                            : PhoneNumberFormatter.format(profile.phone),
                         style: const TextStyle(color: AppColors.textMuted),
                       ),
                     ],

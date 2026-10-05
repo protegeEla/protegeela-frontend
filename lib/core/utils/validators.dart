@@ -22,7 +22,9 @@ class Validators {
     final base = required(value, field: 'Telefone');
     if (base != null) return base;
     final digits = value!.replaceAll(RegExp(r'\D'), '');
-    if (digits.length < 10) return 'Informe um telefone com DDD.';
+    if (digits.length != 10 && digits.length != 11) {
+      return 'Informe um telefone com DDD (10 ou 11 dígitos).';
+    }
     return null;
   }
 }

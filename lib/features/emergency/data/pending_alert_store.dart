@@ -2,12 +2,17 @@ import 'dart:convert';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../../core/services/auth_providers.dart';
 
-final pendingAlertStoreProvider =
-    Provider<PendingAlertStore>((ref) => PendingAlertStore());
+final pendingAlertStoreProvider = Provider<PendingAlertStore>(
+    (ref) => PendingAlertStore(ref.watch(currentUserProvider)?.id));
 
 class PendingAlertStore {
-  static const _key = 'protegeela.pending_alert';
+  static const maxAge = Duration(hours: 24);
+
+  PendingAlertStore(String? userId)
+      : _key = 'protegeela.pending_alert.${userId ?? 'anonymous'}';
+  final String _key;
 
   Future<void> save(PendingAlert alert) async {
     final prefs = await SharedPreferences.getInstance();
@@ -24,7 +29,14 @@ class PendingAlertStore {
         await prefs.remove(_key);
         return null;
       }
-      return PendingAlert.fromJson(decoded);
+      final alert = PendingAlert.fromJson(decoded);
+      final now = DateTime.now().toUtc();
+      final createdAt = alert.createdAt.toUtc();
+      if (createdAt.isAfter(now) || now.difference(createdAt) >= maxAge) {
+        await prefs.remove(_key);
+        return null;
+      }
+      return alert;
     } on FormatException {
       await prefs.remove(_key);
       return null;
@@ -46,17 +58,20 @@ class PendingAlert {
     required this.alertType,
     required this.isSilent,
     required this.createdAt,
+    this.publicVisibility = false,
   });
 
   final String clientRequestId;
   final String alertType;
   final bool isSilent;
   final DateTime createdAt;
+  final bool publicVisibility;
 
   Map<String, dynamic> toJson() => {
         'client_request_id': clientRequestId,
         'alert_type': alertType,
         'is_silent': isSilent,
+        'public_visibility': publicVisibility,
         'created_at': createdAt.toIso8601String(),
       };
 
@@ -64,6 +79,7 @@ class PendingAlert {
         clientRequestId: json['client_request_id'] as String,
         alertType: json['alert_type'] as String,
         isSilent: json['is_silent'] as bool? ?? false,
+        publicVisibility: json['public_visibility'] as bool? ?? false,
         createdAt: DateTime.parse(json['created_at'] as String),
       );
 }

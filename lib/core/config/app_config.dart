@@ -1,4 +1,3 @@
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 final appConfigProvider =
@@ -6,52 +5,51 @@ final appConfigProvider =
 
 class AppConfig {
   const AppConfig({
-    required this.supabaseUrl,
-    required this.supabaseAnonKey,
-    required this.appEnvironment,
+    this.apiBaseUrl = 'http://localhost:8080/api',
     required this.defaultLatitude,
     required this.defaultLongitude,
     required this.defaultZoom,
   });
 
-  final String supabaseUrl;
-  final String supabaseAnonKey;
-  final String appEnvironment;
+  final String apiBaseUrl;
+
   final double defaultLatitude;
   final double defaultLongitude;
   final double defaultZoom;
 
-  bool get isDemoMode =>
-      supabaseUrl.contains('your-project-ref') ||
-      supabaseAnonKey.startsWith('your-public');
-
   factory AppConfig.fromEnvironment() {
-    String read(String key, String fallback) {
-      const env = String.fromEnvironment('APP_ENV');
-      final value = dotenv.isInitialized ? dotenv.maybeGet(key) : null;
-      if (key == 'APP_ENV' && env.isNotEmpty) return env;
-      return value == null || value.isEmpty ? fallback : value;
+    const apiDefine = String.fromEnvironment('API_BASE_URL');
+    final apiUrl =
+        apiDefine.isNotEmpty ? apiDefine : 'http://localhost:8080/api';
+    if (apiUrl.isNotEmpty) {
+      final uri = Uri.tryParse(apiUrl);
+      if (uri == null ||
+          !['http', 'https'].contains(uri.scheme) ||
+          uri.host.isEmpty ||
+          uri.hasQuery ||
+          uri.hasFragment ||
+          uri.userInfo.isNotEmpty) {
+        throw ArgumentError(
+            'API_BASE_URL deve ser uma URL HTTP(S) sem credenciais, query ou fragmento.');
+      }
+      final loopback = const {'localhost', '127.0.0.1', '::1', '[::1]'}
+          .contains(uri.host.toLowerCase());
+      if (uri.scheme != 'https' && !loopback) {
+        throw ArgumentError(
+            'API_BASE_URL deve usar HTTPS fora do computador local.');
+      }
     }
-
-    double readDouble(String key, double fallback) {
-      final value = read(key, fallback.toString());
-      return double.tryParse(value) ?? fallback;
-    }
-
-    const supabaseUrlDefine = String.fromEnvironment('SUPABASE_URL');
-    const supabaseAnonDefine = String.fromEnvironment('SUPABASE_ANON_KEY');
-
     return AppConfig(
-      supabaseUrl: supabaseUrlDefine.isNotEmpty
-          ? supabaseUrlDefine
-          : read('SUPABASE_URL', 'https://your-project-ref.supabase.co'),
-      supabaseAnonKey: supabaseAnonDefine.isNotEmpty
-          ? supabaseAnonDefine
-          : read('SUPABASE_ANON_KEY', 'your-public-anon-key'),
-      appEnvironment: read('APP_ENV', 'development'),
-      defaultLatitude: readDouble('APP_DEFAULT_LATITUDE', -3.1190),
-      defaultLongitude: readDouble('APP_DEFAULT_LONGITUDE', -60.0217),
-      defaultZoom: readDouble('APP_DEFAULT_ZOOM', 12),
+      apiBaseUrl: apiUrl,
+      defaultLatitude: double.tryParse(
+              const String.fromEnvironment('APP_DEFAULT_LATITUDE')) ??
+          -3.1190,
+      defaultLongitude: double.tryParse(
+              const String.fromEnvironment('APP_DEFAULT_LONGITUDE')) ??
+          -60.0217,
+      defaultZoom:
+          double.tryParse(const String.fromEnvironment('APP_DEFAULT_ZOOM')) ??
+              12,
     );
   }
 }

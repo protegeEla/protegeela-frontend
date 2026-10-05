@@ -3,7 +3,7 @@ import 'package:uuid/uuid.dart';
 
 import '../../../core/errors/app_exception.dart';
 import '../../../core/services/location_service.dart';
-import '../../../core/services/notification_service.dart';
+import '../../../core/services/auth_providers.dart';
 import '../../../shared/models/emergency_alert.dart';
 import '../../authentication/data/demo_session_repository.dart';
 import '../../notifications/data/notification_center_repository.dart';
@@ -21,14 +21,18 @@ class EmergencyController extends AsyncNotifier<EmergencyState> {
 
   @override
   Future<EmergencyState> build() async {
+    final userId = ref.watch(currentUserProvider.select((user) => user?.id));
     final demoActive = await ref.watch(demoSessionProvider.future);
     if (demoActive) return const EmergencyState();
+    if (userId == null) return const EmergencyState();
     final alert = await ref.watch(emergencyRepositoryProvider).activeAlert();
     return EmergencyState(activeAlert: alert);
   }
 
   Future<void> createAlert(
-      {String alertType = 'immediate_danger', bool isSilent = false}) async {
+      {String alertType = 'immediate_danger',
+      bool isSilent = false,
+      bool publicVisibility = false}) async {
     final current = state.valueOrNull;
     if (current?.isSending == true || current?.activeAlert?.isActive == true) {
       return;
@@ -60,11 +64,10 @@ class EmergencyController extends AsyncNotifier<EmergencyState> {
         isSilent: isSilent,
         locationStatus: 'captured',
         startedAt: DateTime.now().toUtc(),
-        publicVisibility: true,
+        publicVisibility: publicVisibility && !isSilent,
         publicLatitude: publicLatitude,
         publicLongitude: publicLongitude,
       );
-      await ref.read(notificationServiceProvider).notifyAlertCreated(alert.id);
       state = AsyncData(
         EmergencyState(
           activeAlert: alert,
@@ -75,6 +78,8 @@ class EmergencyController extends AsyncNotifier<EmergencyState> {
       return;
     }
 
+    final userId = ref.read(currentUserProvider)?.id;
+    final pendingStore = ref.read(pendingAlertStoreProvider);
     LocationCapture? location;
     var locationStatus = 'location_unavailable';
     try {
@@ -82,43 +87,67 @@ class EmergencyController extends AsyncNotifier<EmergencyState> {
       locationStatus = 'captured';
     } on AppException catch (error) {
       locationStatus = error.code ?? 'location_unavailable';
+    } catch (_) {
+      locationStatus = 'location_unavailable';
     }
+
+    if (userId == null || ref.read(currentUserProvider)?.id != userId) return;
 
     try {
       final alert = await ref.read(emergencyRepositoryProvider).createAlert(
             clientRequestId: requestId,
             alertType: alertType,
             isSilent: isSilent,
+            publicVisibility: publicVisibility,
             location: location,
             locationStatus: locationStatus,
           );
-      await ref.read(notificationServiceProvider).notifyAlertCreated(alert.id);
+      if (ref.read(currentUserProvider)?.id != userId) return;
+      await pendingStore.clear();
+      bool notified = false;
       try {
-        await ref
+        notified = await ref
             .read(notificationCenterRepositoryProvider)
-            .markAlertNotificationsSent(alert.id);
-      } catch (_) {
-        await ref
-            .read(notificationServiceProvider)
-            .notifyAlertCreated('notification_fallback:${alert.id}');
-      }
+            .wasAlertNotificationSent(alert.id);
+      } catch (_) {}
+      if (ref.read(currentUserProvider)?.id != userId) return;
       state = AsyncData(EmergencyState(
-          activeAlert: alert, lastMessage: 'Alerta confirmado pelo servidor.'));
-    } catch (_) {
-      await ref.read(pendingAlertStoreProvider).save(
-            PendingAlert(
-              clientRequestId: requestId,
-              alertType: alertType,
-              isSilent: isSilent,
-              createdAt: DateTime.now().toUtc(),
-            ),
-          );
+          activeAlert: alert,
+          lastMessage: notified
+              ? 'Alerta confirmado pelo servidor.'
+              : 'Alerta salvo. Nenhuma notificação externa foi enviada.'));
+    } catch (error) {
+      if (ref.read(currentUserProvider)?.id != userId) return;
+      if (error is AppException && error.code?.startsWith('http_4') == true) {
+        state = const AsyncData(EmergencyState());
+        if (error.code == 'http_409') {
+          final active =
+              await ref.read(emergencyRepositoryProvider).activeAlert();
+          if (ref.read(currentUserProvider)?.id != userId) return;
+          state = AsyncData(EmergencyState(activeAlert: active));
+          if (active != null) {
+            await pendingStore.clear();
+            return;
+          }
+        }
+        rethrow;
+      }
+      await pendingStore.save(
+        PendingAlert(
+          clientRequestId: requestId,
+          alertType: alertType,
+          isSilent: isSilent,
+          publicVisibility: publicVisibility,
+          createdAt: DateTime.now().toUtc(),
+        ),
+      );
       state = AsyncData(
         EmergencyState(
           isSending: false,
           clientRequestId: requestId,
           lastMessage:
               'Sem confirmação do servidor. Tente sincronizar assim que a conexão voltar.',
+          lastAttemptAt: DateTime.now(),
         ),
       );
       rethrow;
@@ -142,18 +171,26 @@ class EmergencyController extends AsyncNotifier<EmergencyState> {
   }
 
   Future<void> syncPendingAlert() async {
-    final pending = await ref.read(pendingAlertStoreProvider).read();
+    final userId = ref.read(currentUserProvider)?.id;
+    if (userId == null) return;
+    final pendingStore = ref.read(pendingAlertStoreProvider);
+    final pending = await pendingStore.read();
     if (pending == null) return;
+    if (ref.read(currentUserProvider)?.id != userId) return;
     final alert = await ref.read(emergencyRepositoryProvider).createAlert(
           clientRequestId: pending.clientRequestId,
           alertType: pending.alertType,
           isSilent: pending.isSilent,
+          publicVisibility: pending.publicVisibility,
           location: null,
           locationStatus: 'pending_sync',
         );
-    await ref.read(pendingAlertStoreProvider).clear();
-    await ref.read(notificationServiceProvider).notifyAlertCreated(alert.id);
+    await pendingStore.clear();
+    if (ref.read(currentUserProvider)?.id != userId) return;
     state = AsyncData(EmergencyState(
-        activeAlert: alert, lastMessage: 'Alerta pendente sincronizado.'));
+        activeAlert: alert.isActive ? alert : null,
+        lastMessage:
+            'Alerta sincronizado. Nenhuma notificação externa foi enviada.',
+        lastAttemptAt: DateTime.now()));
   }
 }

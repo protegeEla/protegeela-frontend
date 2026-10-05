@@ -86,11 +86,29 @@ class PrivacyIntroPage extends StatelessWidget {
                               ),
                               const SizedBox(height: 16),
                               const Text(
-                                'O mapa comunitário mostra apenas áreas aproximadas. Sua localização exata fica disponível apenas para você e para contatos autorizados durante um alerta ativo.',
+                                'O mapa comunitário mostra apenas áreas aproximadas quando você escolhe compartilhar um alerta. A localização exata do alerta é acessível pela sua conta e é removida ao encerrar o alerta. Contatos cadastrados ainda não recebem acesso à sua localização nesta versão.',
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
                                   color: AppColors.textMuted,
                                   fontSize: 15,
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+                              const Text(
+                                'Os mapas carregam imagens de serviços externos, que recebem dados de conexão e os identificadores da região exibida. Ao buscar locais perto de você, a posição usada na busca também é enviada ao provedor de locais. Esses dados podem indicar a área onde você está.',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  color: AppColors.textMuted,
+                                  fontSize: 13,
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+                              const Text(
+                                'Se um alerta ficar sem confirmação, o navegador guarda o tipo, o horário e as opções do alerta, sem coordenadas, para tentar sincronizar. Esses registros ficam no armazenamento local do dispositivo e são descartados ao serem lidos após 24 horas ou ao sair da conta.',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  color: AppColors.textMuted,
+                                  fontSize: 13,
                                 ),
                               ),
                               const SizedBox(height: 24),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../app/theme.dart';
@@ -13,6 +14,7 @@ class RegistrationField extends StatelessWidget {
     required this.action,
     this.keyboardType,
     this.autofillHints,
+    this.inputFormatters,
     this.obscureText = false,
     this.suffixIcon,
     this.onSubmitted,
@@ -25,6 +27,7 @@ class RegistrationField extends StatelessWidget {
   final TextInputAction action;
   final TextInputType? keyboardType;
   final Iterable<String>? autofillHints;
+  final List<TextInputFormatter>? inputFormatters;
   final bool obscureText;
   final Widget? suffixIcon;
   final ValueChanged<String>? onSubmitted;
@@ -34,6 +37,7 @@ class RegistrationField extends StatelessWidget {
     return TextFormField(
       controller: controller,
       keyboardType: keyboardType,
+      inputFormatters: inputFormatters,
       textInputAction: action,
       autofillHints: autofillHints,
       obscureText: obscureText,

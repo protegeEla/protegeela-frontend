@@ -24,18 +24,7 @@ void main() {
   final oversized = counts.entries.where((entry) => entry.value > 800).toList();
   stdout.writeln('Files above 800 lines: ${oversized.length}');
 
-  final pending = <Uri>[
-    lib.resolve('main.dart'),
-    ...[
-      Directory('test/core'),
-      Directory('test/features'),
-    ]
-        .where((directory) => directory.existsSync())
-        .expand((directory) => directory.listSync(recursive: true))
-        .whereType<File>()
-        .where((file) => file.path.endsWith('.dart'))
-        .map((file) => file.absolute.uri),
-  ];
+  final pending = <Uri>[lib.resolve('main.dart')];
   final visited = <Uri>{};
   final directive = RegExp(
     r'''^\s*(?:import|export|part)\s+([^;]+);''',
@@ -63,7 +52,7 @@ void main() {
   final unreachable = files
       .where((file) => !visited.contains(file.absolute.uri.normalizePath()))
       .toList();
-  stdout.writeln('Unreachable from main.dart and frontend tests:');
+  stdout.writeln('Unreachable from main.dart:');
   if (unreachable.isEmpty) {
     stdout.writeln('None.');
   } else {

@@ -1,14 +1,14 @@
+import '../../../core/services/auth_providers.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
-import '../../../core/errors/app_exception.dart';
-import '../../../core/services/supabase_providers.dart';
+import '../../../core/services/api_client.dart';
+import '../../../core/utils/phone_number_formatter.dart';
 import '../../../shared/models/trusted_contact.dart';
 import '../../authentication/data/demo_session_repository.dart';
 
 final trustedContactsRepositoryProvider =
     Provider<TrustedContactsRepository>((ref) {
-  return TrustedContactsRepository(ref.watch(supabaseClientProvider));
+  return TrustedContactsRepository(ref.watch(apiClientProvider));
 });
 
 final demoTrustedContactsProvider =
@@ -38,74 +38,70 @@ final trustedContactsProvider =
 });
 
 class TrustedContactsRepository {
-  const TrustedContactsRepository(this._client);
+  const TrustedContactsRepository(this._api);
+  final ApiClient _api;
 
-  final SupabaseClient _client;
+  Future<List<TrustedContact>> listMine() async =>
+      (await _api.list('/contacts')).map(TrustedContact.fromJson).toList();
 
-  Future<List<TrustedContact>> listMine() async {
-    final rows = await _client
-        .from('trusted_contacts')
-        .select()
-        .order('is_primary', ascending: false)
-        .order('created_at', ascending: false);
-    return [for (final row in rows) TrustedContact.fromJson(row)];
-  }
-
-  Future<void> addContact({
-    required String name,
-    required String phone,
-    String? email,
-    required String relationship,
-    required bool canViewExactLocation,
-  }) async {
-    final userId = _client.auth.currentUser?.id;
-    if (userId == null) {
-      throw const AppException(
-        'Sessão expirada. Entre novamente.',
-        code: 'authentication_required',
-      );
-    }
-    final normalizedEmail = email?.trim();
-    await _client.from('trusted_contacts').insert({
-      'owner_user_id': userId,
+  Future<void> addContact(
+      {required String name,
+      required String phone,
+      String? email,
+      required String relationship,
+      required String preferredChannel,
+      required bool canViewExactLocation}) async {
+    await _api.request('POST', '/contacts', body: {
       'name': name.trim(),
-      'phone': phone.trim(),
-      'email': normalizedEmail == null || normalizedEmail.isEmpty
-          ? null
-          : normalizedEmail,
+      'phone': PhoneNumberFormatter.digitsOnly(phone),
+      'email': _email(email),
       'relationship': relationship,
+      'preferred_channel': preferredChannel,
       'can_view_exact_location': canViewExactLocation,
     });
   }
 
   Future<void> remove(String id) async {
-    await _client.from('trusted_contacts').delete().eq('id', id);
+    await _api.request('DELETE', '/contacts/$id');
   }
 
-  Future<void> updateContact({
-    required String id,
-    required String name,
-    required String phone,
-    String? email,
-    required String relationship,
-  }) async {
-    final normalizedEmail = email?.trim();
-    await _client.from('trusted_contacts').update({
+  Future<void> updateContact(
+      {required String id,
+      required String name,
+      required String phone,
+      String? email,
+      required String relationship,
+      required String preferredChannel}) async {
+    await _api.request('PUT', '/contacts/$id', body: {
       'name': name.trim(),
-      'phone': phone.trim(),
-      'email': normalizedEmail == null || normalizedEmail.isEmpty
-          ? null
-          : normalizedEmail,
+      'phone': PhoneNumberFormatter.digitsOnly(phone),
+      'email': _email(email),
       'relationship': relationship,
-    }).eq('id', id);
+      'preferred_channel': preferredChannel,
+    });
   }
 
-  Future<void> updateLocationPermission({
-    required String id,
-    required bool canViewExactLocation,
-  }) async {
-    await _client.from('trusted_contacts').update({
-      'can_view_exact_location': canViewExactLocation,
-    }).eq('id', id);
+  Future<void> updateLocationPermission(
+      {required String id, required bool canViewExactLocation}) async {
+    await _api.request('PATCH', '/contacts/$id/location-permission',
+        body: {'can_view_exact_location': canViewExactLocation});
   }
+
+  Future<ContactInvitationShare> createInvitation(String id) async {
+    final data = await _api.request('POST', '/contacts/$id/invitation');
+    return ContactInvitationShare(
+      url: data['invite_url'] as String,
+      expiresAt: DateTime.parse(data['expires_at'] as String),
+    );
+  }
+
+  String? _email(String? value) =>
+      value == null || value.trim().isEmpty ? null : value.trim();
+}
+
+class ContactInvitationShare {
+  const ContactInvitationShare({required this.url, required this.expiresAt});
+
+  final String url;
+  final DateTime expiresAt;
 }

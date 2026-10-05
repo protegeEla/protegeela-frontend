@@ -3,7 +3,6 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../../app/theme.dart';
 import '../../../core/widgets/app_back_button.dart';
-import '../../../core/widgets/quick_exit_button.dart';
 
 class AnonymousReportPage extends StatelessWidget {
   const AnonymousReportPage({super.key});
@@ -18,7 +17,6 @@ class AnonymousReportPage extends StatelessWidget {
       appBar: AppBar(
         leading: const AppBackButton(),
         title: const Text('Denúncia anônima'),
-        actions: const [QuickExitButton()],
       ),
       body: SafeArea(
         child: Center(

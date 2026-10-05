@@ -15,4 +15,5 @@ export PATH="$PATH:$FLUTTER_HOME/bin"
 
 flutter config --enable-web
 flutter pub get
-flutter build web --release --csp --no-web-resources-cdn
+flutter build web --release --csp --no-web-resources-cdn \
+  --dart-define="API_BASE_URL=${API_BASE_URL:?Configure a URL publica da API Java}"
