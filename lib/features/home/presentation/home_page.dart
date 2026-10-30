@@ -3,12 +3,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../app/theme.dart';
+import '../../../core/services/network_status_service.dart';
 import '../../../core/widgets/app_state_view.dart';
 import '../../../core/widgets/protegeela_brand.dart';
 import '../../../features/emergency/data/emergency_controller.dart';
+import '../../../features/check_in/presentation/safety_check_in_card.dart';
 import '../../emergency/domain/emergency_state.dart';
 import '../../../features/emergency/presentation/emergency_button.dart';
 import '../../../features/profile/data/profile_repository.dart';
+import 'widgets/protection_readiness_card.dart';
 
 class HomePage extends ConsumerWidget {
   const HomePage({super.key});
@@ -17,6 +20,17 @@ class HomePage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final profile = ref.watch(currentProfileProvider);
     final emergency = ref.watch(emergencyControllerProvider);
+    ref.listen<AsyncValue<bool>>(networkStatusProvider, (previous, next) {
+      if (previous?.valueOrNull == false &&
+          next.valueOrNull == true &&
+          emergency.valueOrNull?.clientRequestId != null &&
+          emergency.valueOrNull?.activeAlert == null) {
+        ref
+            .read(emergencyControllerProvider.notifier)
+            .syncPendingAlert()
+            .catchError((_) {});
+      }
+    });
 
     return Scaffold(
       body: profile.when(
@@ -60,14 +74,6 @@ class HomePage extends ConsumerWidget {
                             activeAlert: activeAlert?.isActive == true,
                             onAlertTap: () => context.go('/alerta-ativo'),
                             onProfileTap: () => context.go('/perfil'),
-                            onNotificationsTap: () {
-                              ScaffoldMessenger.of(context)
-                                ..hideCurrentSnackBar()
-                                ..showSnackBar(const SnackBar(
-                                  content:
-                                      Text('Você não tem notificações novas.'),
-                                ));
-                            },
                           ),
                           const SizedBox(height: 28),
                           if (desktop)
@@ -101,11 +107,34 @@ class HomePage extends ConsumerWidget {
                             const SizedBox(height: 18),
                             _PendingAlertCard(
                               message: emergency.valueOrNull!.lastMessage!,
-                              onSync: () => ref
-                                  .read(emergencyControllerProvider.notifier)
-                                  .syncPendingAlert(),
+                              lastAttemptAt:
+                                  emergency.valueOrNull!.lastAttemptAt,
+                              online: ref
+                                      .watch(networkStatusProvider)
+                                      .valueOrNull ??
+                                  true,
+                              onSync: () async {
+                                try {
+                                  await ref
+                                      .read(
+                                          emergencyControllerProvider.notifier)
+                                      .syncPendingAlert();
+                                } catch (_) {
+                                  if (context.mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                          content: Text(
+                                              'Não foi possível sincronizar. Tente novamente.')),
+                                    );
+                                  }
+                                }
+                              },
                             ),
                           ],
+                          const SizedBox(height: 22),
+                          ProtectionReadinessCard(profile: profile),
+                          const SizedBox(height: 22),
+                          const SafetyCheckInCard(),
                           const SizedBox(height: 22),
                           GridView.count(
                             shrinkWrap: true,
@@ -167,14 +196,12 @@ class _HomeHeader extends StatelessWidget {
     required this.activeAlert,
     required this.onAlertTap,
     required this.onProfileTap,
-    required this.onNotificationsTap,
   });
 
   final String firstName;
   final bool activeAlert;
   final VoidCallback onAlertTap;
   final VoidCallback onProfileTap;
-  final VoidCallback onNotificationsTap;
 
   @override
   Widget build(BuildContext context) {
@@ -205,12 +232,6 @@ class _HomeHeader extends StatelessWidget {
             label: const Text('Ver alerta'),
           )
         else ...[
-          IconButton.filledTonal(
-            onPressed: onNotificationsTap,
-            tooltip: 'Notificações',
-            icon: const Icon(Icons.notifications_none_rounded),
-          ),
-          const SizedBox(width: 9),
           IconButton(
             key: const ValueKey('home-profile-button'),
             onPressed: onProfileTap,
@@ -243,17 +264,47 @@ class _EmergencyPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (emergency.hasError) {
+      return Card(
+          child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text(
+                      'Não foi possível consultar seu alerta no servidor.'),
+                  TextButton(
+                      onPressed: () =>
+                          ref.invalidate(emergencyControllerProvider),
+                      child: const Text('Tentar novamente')),
+                ],
+              )));
+    }
     return Card(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 26),
         child: Center(
           child: EmergencyButton(
-            enabled: emergency.valueOrNull?.isSending != true,
-            onConfirmed: ({required isSilent}) async {
-              await ref
-                  .read(emergencyControllerProvider.notifier)
-                  .createAlert(isSilent: isSilent);
-              if (context.mounted) context.go('/alerta-ativo');
+            enabled: !emergency.isLoading &&
+                !emergency.hasError &&
+                emergency.valueOrNull?.isSending != true,
+            onConfirmed: (
+                {required isSilent, required publicVisibility}) async {
+              try {
+                await ref
+                    .read(emergencyControllerProvider.notifier)
+                    .createAlert(
+                        isSilent: isSilent, publicVisibility: publicVisibility);
+                if (context.mounted) context.go('/alerta-ativo');
+              } catch (_) {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                        content: Text(
+                            'O servidor não confirmou o alerta. Confira a conexão e tente novamente.')),
+                  );
+                }
+              }
             },
           ),
         ),
@@ -305,10 +356,17 @@ class _SafetyMessage extends StatelessWidget {
 }
 
 class _PendingAlertCard extends StatelessWidget {
-  const _PendingAlertCard({required this.message, required this.onSync});
+  const _PendingAlertCard({
+    required this.message,
+    required this.onSync,
+    required this.online,
+    this.lastAttemptAt,
+  });
 
   final String message;
   final VoidCallback onSync;
+  final bool online;
+  final DateTime? lastAttemptAt;
 
   @override
   Widget build(BuildContext context) {
@@ -317,11 +375,33 @@ class _PendingAlertCard extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         child: Row(
           children: [
-            const Icon(Icons.info_outline, color: AppColors.primary),
+            Icon(
+              online ? Icons.sync_problem_rounded : Icons.cloud_off_outlined,
+              color: online ? AppColors.primary : AppColors.emergency,
+            ),
             const SizedBox(width: 12),
-            Expanded(child: Text(message)),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(online
+                      ? message
+                      : 'Sem internet. Seu alerta está aguardando conexão.'),
+                  if (lastAttemptAt != null) ...[
+                    const SizedBox(height: 3),
+                    Text(
+                      'Última tentativa: ${TimeOfDay.fromDateTime(lastAttemptAt!).format(context)}',
+                      style: const TextStyle(
+                        color: AppColors.textMuted,
+                        fontSize: 11.5,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
             OutlinedButton.icon(
-              onPressed: onSync,
+              onPressed: online ? onSync : null,
               icon: const Icon(Icons.sync),
               label: const Text('Sincronizar'),
             ),

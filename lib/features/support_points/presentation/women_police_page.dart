@@ -4,7 +4,6 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../../app/theme.dart';
 import '../../../core/widgets/app_back_button.dart';
-import '../../../core/widgets/quick_exit_button.dart';
 
 class WomenPolicePage extends StatelessWidget {
   const WomenPolicePage({super.key});
@@ -19,7 +18,6 @@ class WomenPolicePage extends StatelessWidget {
       appBar: AppBar(
         leading: const AppBackButton(),
         title: const Text('Delegacia da Mulher'),
-        actions: const [QuickExitButton()],
       ),
       body: SafeArea(
         child: Center(

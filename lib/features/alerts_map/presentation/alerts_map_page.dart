@@ -6,6 +6,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:latlong2/latlong.dart';
 
 import '../../../app/theme.dart';
+import '../../../core/errors/app_exception.dart';
+import '../../../core/services/api_client.dart';
+import '../../../core/services/alerts_realtime_service.dart';
+import '../../authentication/data/demo_session_repository.dart';
 import '../../../core/config/app_config.dart';
 import '../../../core/widgets/protegeela_brand.dart';
 import '../../../core/widgets/app_state_view.dart';
@@ -30,6 +34,7 @@ class _AlertsMapPageState extends ConsumerState<AlertsMapPage>
   final _mapController = MapController();
   final _search = TextEditingController();
   Timer? _refreshTimer;
+  AlertsRealtimeService? _realtime;
   Timer? _moveDebounce;
   bool _mapReady = false;
   bool _foreground = true;
@@ -42,20 +47,92 @@ class _AlertsMapPageState extends ConsumerState<AlertsMapPage>
   bool _mobileList = false;
   List<PublicAlertMarker> _alerts = const [];
   bool _loading = false;
+  DateTime? _lastAlertSync;
+  bool _loadingPlaces = false;
+  String? _placesError;
+  List<SupportPoint> _osmPoints = const [];
+
+  Future<void> _loadPlaces() async {
+    if (!_mapReady || _loadingPlaces) return;
+    setState(() {
+      _loadingPlaces = true;
+      _placesError = null;
+    });
+    try {
+      if (await ref.read(demoSessionProvider.future)) return;
+      if (!mounted) return;
+      final center = _mapController.camera.center;
+      final response = await ref
+          .read(apiClientProvider)
+          .request('POST', '/support-points/places/search', body: {
+        'category': 'all',
+        'latitude': center.latitude,
+        'longitude': center.longitude,
+        'radius': 10000,
+      });
+      final rows = response['items'];
+      if (rows is! List) throw const FormatException();
+      final places = rows
+          .map((row) =>
+              SupportPoint.fromJson(Map<String, dynamic>.from(row as Map)))
+          .toList();
+      if (mounted) setState(() => _osmPoints = places);
+    } on AppException catch (error) {
+      if (mounted) {
+        setState(() => _placesError = switch (error.code) {
+              'http_429' =>
+                'O serviço de locais está ocupado ou atingiu o limite temporário. Tente mais tarde.',
+              'http_502' ||
+              'http_504' =>
+                'O OpenStreetMap não respondeu a tempo. Clique em Tentar novamente.',
+              _ => error.message,
+            });
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() => _placesError =
+            'Não foi possível consultar o OpenStreetMap. Tente buscar nesta região novamente.');
+      }
+    } finally {
+      if (mounted) setState(() => _loadingPlaces = false);
+    }
+  }
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    _startRealtime();
     _refreshTimer = Timer.periodic(const Duration(seconds: 8), (_) {
-      if (mounted && _foreground && _showAlerts && !_loading) _loadAlerts();
+      if (mounted &&
+          _foreground &&
+          _showAlerts &&
+          !_loading &&
+          (_realtime?.isConnected != true ||
+              _lastAlertSync == null ||
+              DateTime.now().difference(_lastAlertSync!).inSeconds >= 30)) {
+        _loadAlerts();
+      }
     });
+  }
+
+  Future<void> _startRealtime() async {
+    final demo = await ref.read(demoSessionProvider.future);
+    if (!mounted || demo) return;
+    _realtime = AlertsRealtimeService(ref.read(apiClientProvider),
+        onChanged: _scheduleRefresh);
+    if (_foreground) _realtime!.start();
   }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     _foreground = state == AppLifecycleState.resumed;
-    if (_foreground) _scheduleRefresh();
+    if (_foreground) {
+      _realtime?.start();
+      _scheduleRefresh();
+    } else {
+      _realtime?.pause();
+    }
   }
 
   void _scheduleRefresh() {
@@ -69,6 +146,7 @@ class _AlertsMapPageState extends ConsumerState<AlertsMapPage>
   void dispose() {
     _search.dispose();
     _refreshTimer?.cancel();
+    _realtime?.dispose();
     _moveDebounce?.cancel();
     _mapController.dispose();
     WidgetsBinding.instance.removeObserver(this);
@@ -96,6 +174,7 @@ class _AlertsMapPageState extends ConsumerState<AlertsMapPage>
               );
       if (!mounted) return;
       _alerts = alerts;
+      _lastAlertSync = DateTime.now();
       _loadError = null;
     } catch (_) {
       if (!mounted) return;
@@ -125,7 +204,10 @@ class _AlertsMapPageState extends ConsumerState<AlertsMapPage>
   Widget build(BuildContext context) {
     final config = ref.watch(appConfigProvider);
     final points = ref.watch(supportPointsProvider);
-    final items = (points.valueOrNull ?? const <SupportPoint>[]).where((point) {
+    final items = [
+      ...(points.valueOrNull ?? const <SupportPoint>[]),
+      ..._osmPoints
+    ].where((point) {
       final text =
           '${point.name} ${point.address} ${point.city} ${supportCategoryLabel(point.category)}'
               .toLowerCase();
@@ -133,18 +215,24 @@ class _AlertsMapPageState extends ConsumerState<AlertsMapPage>
           text.contains(_query.trim().toLowerCase());
     }).toList();
     final center = LatLng(config.defaultLatitude, config.defaultLongitude);
-    final results = points.isLoading && !points.hasValue
+    final results = (points.isLoading || _loadingPlaces) && items.isEmpty
         ? const Center(child: CircularProgressIndicator())
-        : points.hasError
+        : _placesError != null && items.isEmpty
             ? AppStateView(
-                title: 'Não foi possível carregar os locais',
-                message: 'O mapa de alertas continua disponível.',
+                title: 'Falha ao buscar pontos de apoio',
+                message: _placesError!,
                 actionLabel: 'Tentar novamente',
-                onAction: () => ref.invalidate(supportPointsProvider))
-            : SupportResultsPanel(
-                items: items,
-                selectedId: _selectedId,
-                onSelected: _selectPoint);
+                onAction: _loadPlaces)
+            : points.hasError && items.isEmpty
+                ? AppStateView(
+                    title: 'Não foi possível carregar os locais',
+                    message: 'O mapa de alertas continua disponível.',
+                    actionLabel: 'Tentar novamente',
+                    onAction: () => ref.invalidate(supportPointsProvider))
+                : SupportResultsPanel(
+                    items: items,
+                    selectedId: _selectedId,
+                    onSelected: _selectPoint);
     final map = CommunityMap(
       controller: _mapController,
       center: center,
@@ -160,6 +248,7 @@ class _AlertsMapPageState extends ConsumerState<AlertsMapPage>
       onReady: () {
         _mapReady = true;
         _loadAlerts();
+        _loadPlaces();
       },
       onMoved: _scheduleRefresh,
     );
@@ -197,6 +286,20 @@ class _AlertsMapPageState extends ConsumerState<AlertsMapPage>
                     ),
                   ),
                   const SizedBox(height: 10),
+                  Row(children: [
+                    Expanded(
+                        child: Text(
+                            _placesError ??
+                                'Pontos do OpenStreetMap em até 10 km do centro consultado. Cobertura colaborativa.',
+                            maxLines: 2)),
+                    TextButton.icon(
+                      onPressed: _loadingPlaces ? null : _loadPlaces,
+                      icon: const Icon(Icons.refresh),
+                      label: Text(_loadingPlaces
+                          ? 'Buscando...'
+                          : 'Buscar nesta região'),
+                    ),
+                  ]),
                   SingleChildScrollView(
                     scrollDirection: Axis.horizontal,
                     child: Row(children: [

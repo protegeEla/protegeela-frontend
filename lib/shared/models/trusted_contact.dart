@@ -8,8 +8,11 @@ class TrustedContact {
     required this.invitationStatus,
     required this.canViewExactLocation,
     required this.isPrimary,
+    this.preferredChannel = 'whatsapp',
     this.contactUserId,
     this.email,
+    this.invitationSentAt,
+    this.confirmedAt,
   });
 
   final String id;
@@ -22,6 +25,9 @@ class TrustedContact {
   final String invitationStatus;
   final bool canViewExactLocation;
   final bool isPrimary;
+  final String preferredChannel;
+  final DateTime? invitationSentAt;
+  final DateTime? confirmedAt;
 
   TrustedContact copyWith({
     String? name,
@@ -32,6 +38,9 @@ class TrustedContact {
     String? invitationStatus,
     bool? canViewExactLocation,
     bool? isPrimary,
+    String? preferredChannel,
+    DateTime? invitationSentAt,
+    DateTime? confirmedAt,
   }) {
     return TrustedContact(
       id: id,
@@ -44,6 +53,9 @@ class TrustedContact {
       invitationStatus: invitationStatus ?? this.invitationStatus,
       canViewExactLocation: canViewExactLocation ?? this.canViewExactLocation,
       isPrimary: isPrimary ?? this.isPrimary,
+      preferredChannel: preferredChannel ?? this.preferredChannel,
+      invitationSentAt: invitationSentAt ?? this.invitationSentAt,
+      confirmedAt: confirmedAt ?? this.confirmedAt,
     );
   }
 
@@ -58,6 +70,13 @@ class TrustedContact {
         invitationStatus: json['invitation_status'] as String? ?? 'pending',
         canViewExactLocation: json['can_view_exact_location'] as bool? ?? false,
         isPrimary: json['is_primary'] as bool? ?? false,
+        preferredChannel: json['preferred_channel'] as String? ?? 'whatsapp',
+        invitationSentAt: json['invitation_sent_at'] == null
+            ? null
+            : DateTime.tryParse(json['invitation_sent_at'] as String),
+        confirmedAt: json['confirmed_at'] == null
+            ? null
+            : DateTime.tryParse(json['confirmed_at'] as String),
       );
 
   Map<String, dynamic> toJson() => {
@@ -71,5 +90,8 @@ class TrustedContact {
         'invitation_status': invitationStatus,
         'can_view_exact_location': canViewExactLocation,
         'is_primary': isPrimary,
+        'preferred_channel': preferredChannel,
+        'invitation_sent_at': invitationSentAt?.toIso8601String(),
+        'confirmed_at': confirmedAt?.toIso8601String(),
       };
 }

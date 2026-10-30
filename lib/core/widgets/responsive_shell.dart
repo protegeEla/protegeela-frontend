@@ -70,7 +70,17 @@ class ResponsiveShell extends ConsumerWidget {
       await ref.read(demoSessionRepositoryProvider).end();
       ref.invalidate(demoSessionProvider);
     } else {
-      await ref.read(authRepositoryProvider).signOut();
+      try {
+        await ref.read(authRepositoryProvider).signOut();
+      } catch (_) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+                content:
+                    Text('Não foi possível confirmar a saída no servidor.')),
+          );
+        }
+      }
     }
     if (context.mounted) context.go('/login');
   }
@@ -215,18 +225,125 @@ class _MobileNavigation extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return NavigationBar(
-      height: 72,
-      selectedIndex: selectedIndex,
-      onDestinationSelected: onSelected,
-      destinations: [
-        for (final item in ResponsiveShell.destinations)
-          NavigationDestination(
-            icon: Icon(item.icon),
-            selectedIcon: Icon(item.selectedIcon),
-            label: item.label == 'Rede de apoio' ? 'Rede' : item.label,
+    return SafeArea(
+      minimum: const EdgeInsets.fromLTRB(14, 0, 14, 12),
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(30),
+          border: Border.all(color: AppColors.border),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.primary.withValues(alpha: 0.13),
+              blurRadius: 26,
+              spreadRadius: 1,
+              offset: const Offset(0, 10),
+            ),
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Material(
+          color: Colors.transparent,
+          borderRadius: BorderRadius.circular(30),
+          clipBehavior: Clip.antiAlias,
+          child: SizedBox(
+            height: 78,
+            child: Row(
+              children: [
+                for (var index = 0;
+                    index < ResponsiveShell.destinations.length;
+                    index++)
+                  Expanded(
+                    child: _MobileNavigationItem(
+                      destination: ResponsiveShell.destinations[index],
+                      label: ResponsiveShell.destinations[index].label ==
+                              'Rede de apoio'
+                          ? 'Rede'
+                          : ResponsiveShell.destinations[index].label,
+                      selected: selectedIndex == index,
+                      onTap: () => onSelected(index),
+                    ),
+                  ),
+              ],
+            ),
           ),
-      ],
+        ),
+      ),
+    );
+  }
+}
+
+class _MobileNavigationItem extends StatelessWidget {
+  const _MobileNavigationItem({
+    required this.destination,
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final _Destination destination;
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = selected ? AppColors.primary : AppColors.textMuted;
+
+    return Semantics(
+      button: true,
+      selected: selected,
+      label: destination.label,
+      child: Tooltip(
+        message: destination.label,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(24),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(3, 8, 3, 7),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                AnimatedContainer(
+                  duration: const Duration(milliseconds: 180),
+                  curve: Curves.easeOutCubic,
+                  width: 54,
+                  height: 34,
+                  decoration: BoxDecoration(
+                    color: selected ? AppColors.accent : Colors.transparent,
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                  child: Icon(
+                    selected ? destination.selectedIcon : destination.icon,
+                    color: color,
+                    size: 22,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                SizedBox(
+                  width: double.infinity,
+                  child: Text(
+                    label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: color,
+                      fontSize: 11.5,
+                      height: 1.1,
+                      fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

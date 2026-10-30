@@ -1,11 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
-import '../../../core/errors/app_exception.dart';
-import '../../../core/services/supabase_providers.dart';
+import '../../../core/services/api_client.dart';
 
 final adminRepositoryProvider = Provider<AdminRepository>((ref) {
-  return AdminRepository(ref.watch(supabaseClientProvider));
+  return AdminRepository(ref.watch(apiClientProvider));
 });
 
 class AdminDashboardMetrics {
@@ -23,26 +21,16 @@ class AdminDashboardMetrics {
 }
 
 class AdminRepository {
-  const AdminRepository(this._client);
-
-  final SupabaseClient _client;
+  const AdminRepository(this._api);
+  final ApiClient _api;
 
   Future<AdminDashboardMetrics> metrics() async {
-    final response = await _client.rpc('admin_dashboard_metrics');
-    if (response is! List<dynamic> ||
-        response.isEmpty ||
-        response.first is! Map<String, dynamic>) {
-      throw const AppException(
-        'Resposta inválida ao carregar indicadores.',
-        code: 'invalid_server_response',
-      );
-    }
-    final row = response.first as Map<String, dynamic>;
+    final data = await _api.request('GET', '/admin/metrics');
     return AdminDashboardMetrics(
-      totalAlerts: row['total_alerts'] as int? ?? 0,
-      activeAlerts: row['active_alerts'] as int? ?? 0,
-      closedAlerts: row['closed_alerts'] as int? ?? 0,
-      verifiedSupportPoints: row['verified_support_points'] as int? ?? 0,
-    );
+        totalAlerts: (data['total_alerts'] as num).toInt(),
+        activeAlerts: (data['active_alerts'] as num).toInt(),
+        closedAlerts: (data['closed_alerts'] as num).toInt(),
+        verifiedSupportPoints:
+            (data['verified_support_points'] as num).toInt());
   }
 }
