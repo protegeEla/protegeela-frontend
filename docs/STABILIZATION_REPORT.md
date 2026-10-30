@@ -74,6 +74,7 @@ Ambiente Windows, Flutter 3.44.8 stable, Dart 3.12.2.
 | `flutter test --no-pub` | 17 testes aprovados. |
 | `dart run scripts/audit_frontend.dart` | Aprovado, nenhum arquivo >800 linhas, nenhum arquivo inacessível. |
 | `flutter build web --release --csp --no-web-resources-cdn --dart-define=API_BASE_URL=https://api.example.invalid/api` | Build de release aprovado; também passou o dry run Wasm. |
+| `bash build.sh` com SDK local da mesma versão e API sintética | Aprovado de ponta a ponta, incluindo lockfile obrigatório, build e geração de `_headers` / `_redirects`. A instalação do SDK em Linux será exercitada pela CI. |
 
 Testes cobrem inicialização e navegação pública/protegida, cadastro e login sem
 overflow em 390×844, 1440×900 e 1366×768; bearer e chamadas públicas; 401;
@@ -85,6 +86,10 @@ O domínio `api.example.invalid` é deliberadamente não operacional: permite
 validar compilação sem enviar dados reais e **não deve ser usado em produção**.
 
 ## Infraestrutura e limites
+
+- Entrega remota: [PR #12, em rascunho para revisão](https://github.com/protegeEla/protegeela-frontend/pull/12),
+  sem merge na main. A [lista completa de arquivos modificados](https://github.com/protegeEla/protegeela-frontend/pull/12/files)
+  inclui os arquivos de formatação, implementação, testes e infraestrutura.
 
 - GitHub API confirmou a falha em instalação de dependências na execução
   [41094880709](https://github.com/protegeEla/protegeela-frontend/actions/runs/41094880709).
