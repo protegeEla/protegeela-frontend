@@ -3,21 +3,15 @@
   publish = "build/web"
 
 [build.environment]
-  FLUTTER_VERSION = "3.47.5"
-
-[[redirects]]
-  from = "/*"
-  to = "/index.html"
-  status = 200
+  FLUTTER_VERSION = "3.44.8"
 
 [[headers]]
   for = "/*"
   [headers.values]
     X-Frame-Options = "DENY"
     X-Content-Type-Options = "nosniff"
-    Referrer-Policy = "strict-origin-when-cross-origin"
+    Referrer-Policy = "no-referrer"
     Permissions-Policy = "geolocation=(self), microphone=(), camera=()"
-    Content-Security-Policy = "default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://tile.openstreetmap.org; connect-src 'self'; font-src 'self' data:; worker-src 'self' blob:; manifest-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
 
 [[headers]]
   for = "/manifest.json"

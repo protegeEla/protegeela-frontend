@@ -24,7 +24,7 @@ WhatsApp ou copiado para outro canal.
 
 ## Executar localmente
 
-Requisitos: Flutter 3.47.5, Edge ou Chrome e backend em execução.
+Requisitos: Flutter 3.44.8 (Dart 3.12.2), Edge ou Chrome e backend em execução.
 Siga o [README do backend](../protegeela-backend/README.md) para iniciar
 PostgreSQL, Redis e Java. Na pasta do frontend:
 
@@ -89,10 +89,12 @@ A autorização e as regras de acesso a dados são aplicadas pelo backend.
 ## Verificar e compilar
 
 ```powershell
-dart format --output=none --set-exit-if-changed lib scripts
+flutter pub get --enforce-lockfile
+dart format --output=none --set-exit-if-changed lib scripts test
 dart run scripts/audit_frontend.dart
 flutter analyze --no-pub
-flutter build web --release --no-pub
+flutter test --no-pub
+flutter build web --release --no-pub --csp --no-web-resources-cdn --dart-define=API_BASE_URL=https://sua-api.example/api
 ```
 
 A CI executa essas verificações em pull requests e pushes para `main`.
@@ -101,10 +103,23 @@ O Dependabot acompanha dependências Dart e GitHub Actions.
 ## Publicar
 
 Na Netlify, `build.sh` instala a versão configurada do Flutter e gera `build/web`.
-Defina `API_BASE_URL` com a URL HTTPS pública da API no ambiente de build.
-Configure `FRONTEND_ORIGINS` no backend e inclua as origens HTTPS/WSS da API em
-`connect-src` no arquivo `netlify.toml`. O proxy deve aceitar upgrade WebSocket.
+Defina `API_BASE_URL` com a URL HTTPS pública da API, terminada em `/api`, no ambiente de build.
+O script valida essa URL e gera `build/web/_headers`, permitindo apenas a origem
+HTTPS/WSS configurada e os recursos do mapa na política CSP. Os recursos do Flutter
+são publicados junto com a aplicação, sem depender de CDN externa.
+Configure `FRONTEND_ORIGINS` no backend. O proxy deve aceitar upgrade WebSocket.
+O arquivo `build/web/_redirects` é gerado a partir das rotas declaradas no router;
+arquivos inexistentes e `/api` não são redirecionados para o HTML da aplicação.
 Não publique um build apontando para `localhost`.
+
+O SDK de build fica em `$HOME/.cache/protegeela/flutter/<versão>`; `FLUTTER_HOME`
+pode apontar para uma instalação existente. CI e Netlify usam a mesma versão e
+o lockfile é obrigatório. Para gerar os arquivos de hospedagem após um build
+manual, defina `API_BASE_URL` no ambiente e execute
+`dart run scripts/configure_web_host.dart`.
+
+Consulte [o relatório de estabilização](docs/STABILIZATION_REPORT.md) para os
+resultados de validação e as limitações de infraestrutura.
 
 ## Contribuir
 
