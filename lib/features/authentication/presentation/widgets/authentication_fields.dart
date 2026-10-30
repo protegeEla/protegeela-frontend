@@ -111,31 +111,34 @@ class AuthenticationModeSwitch extends StatelessWidget {
     return Row(
       children: [
         const Expanded(child: Divider()),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12),
-          child: Wrap(
-            alignment: WrapAlignment.center,
-            crossAxisAlignment: WrapCrossAlignment.center,
-            children: [
-              Text(
-                registering ? 'Já tem uma conta? ' : 'Ainda não tem conta? ',
-                style: const TextStyle(color: AppColors.textMuted),
-              ),
-              InkWell(
-                borderRadius: BorderRadius.circular(6),
-                onTap: () => context.go(registering ? '/login' : '/cadastro'),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 5),
-                  child: Text(
-                    registering ? 'Entrar' : 'Criar conta',
-                    style: const TextStyle(
-                      color: AppColors.secondary,
-                      fontWeight: FontWeight.w800,
+        Flexible(
+          flex: 8,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: Wrap(
+              alignment: WrapAlignment.center,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: [
+                Text(
+                  registering ? 'Já tem uma conta? ' : 'Ainda não tem conta? ',
+                  style: const TextStyle(color: AppColors.textMuted),
+                ),
+                InkWell(
+                  borderRadius: BorderRadius.circular(6),
+                  onTap: () => context.go(registering ? '/login' : '/cadastro'),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 5),
+                    child: Text(
+                      registering ? 'Entrar' : 'Criar conta',
+                      style: const TextStyle(
+                        color: AppColors.secondary,
+                        fontWeight: FontWeight.w800,
+                      ),
                     ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
         const Expanded(child: Divider()),

@@ -109,7 +109,8 @@ class HomePage extends ConsumerWidget {
                               message: emergency.valueOrNull!.lastMessage!,
                               lastAttemptAt:
                                   emergency.valueOrNull!.lastAttemptAt,
-                              online: ref
+                              online:
+                                  ref
                                       .watch(networkStatusProvider)
                                       .valueOrNull ??
                                   true,
@@ -117,14 +118,17 @@ class HomePage extends ConsumerWidget {
                                 try {
                                   await ref
                                       .read(
-                                          emergencyControllerProvider.notifier)
+                                        emergencyControllerProvider.notifier,
+                                      )
                                       .syncPendingAlert();
                                 } catch (_) {
                                   if (context.mounted) {
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       const SnackBar(
-                                          content: Text(
-                                              'Não foi possível sincronizar. Tente novamente.')),
+                                        content: Text(
+                                          'Não foi possível sincronizar. Tente novamente.',
+                                        ),
+                                      ),
                                     );
                                   }
                                 }
@@ -266,42 +270,47 @@ class _EmergencyPanel extends StatelessWidget {
   Widget build(BuildContext context) {
     if (emergency.hasError) {
       return Card(
-          child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Text(
-                      'Não foi possível consultar seu alerta no servidor.'),
-                  TextButton(
-                      onPressed: () =>
-                          ref.invalidate(emergencyControllerProvider),
-                      child: const Text('Tentar novamente')),
-                ],
-              )));
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text('Não foi possível consultar seu alerta no servidor.'),
+              TextButton(
+                onPressed: () => ref.invalidate(emergencyControllerProvider),
+                child: const Text('Tentar novamente'),
+              ),
+            ],
+          ),
+        ),
+      );
     }
     return Card(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 26),
         child: Center(
           child: EmergencyButton(
-            enabled: !emergency.isLoading &&
+            enabled:
+                !emergency.isLoading &&
                 !emergency.hasError &&
                 emergency.valueOrNull?.isSending != true,
-            onConfirmed: (
-                {required isSilent, required publicVisibility}) async {
+            onConfirmed: ({required isSilent, required publicVisibility}) async {
               try {
                 await ref
                     .read(emergencyControllerProvider.notifier)
                     .createAlert(
-                        isSilent: isSilent, publicVisibility: publicVisibility);
+                      isSilent: isSilent,
+                      publicVisibility: publicVisibility,
+                    );
                 if (context.mounted) context.go('/alerta-ativo');
               } catch (_) {
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
-                        content: Text(
-                            'O servidor não confirmou o alerta. Confira a conexão e tente novamente.')),
+                      content: Text(
+                        'O servidor não confirmou o alerta. Confira a conexão e tente novamente.',
+                      ),
+                    ),
                   );
                 }
               }
@@ -384,9 +393,11 @@ class _PendingAlertCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(online
-                      ? message
-                      : 'Sem internet. Seu alerta está aguardando conexão.'),
+                  Text(
+                    online
+                        ? message
+                        : 'Sem internet. Seu alerta está aguardando conexão.',
+                  ),
                   if (lastAttemptAt != null) ...[
                     const SizedBox(height: 3),
                     Text(

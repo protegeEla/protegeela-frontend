@@ -32,19 +32,19 @@ class SupportPoint {
   final bool isVerified;
 
   factory SupportPoint.fromJson(Map<String, dynamic> json) => SupportPoint(
-        id: json['id'] as String,
-        name: json['name'] as String? ?? '',
-        category: json['category'] as String? ?? 'other',
-        description: json['description'] as String?,
-        address: json['address'] as String? ?? '',
-        city: json['city'] as String? ?? '',
-        state: json['state'] as String? ?? '',
-        latitude: (json['latitude'] as num?)?.toDouble() ?? 0,
-        longitude: (json['longitude'] as num?)?.toDouble() ?? 0,
-        phone: json['phone'] as String?,
-        openingHours: json['opening_hours'] as String?,
-        website: json['website'] as String?,
-        accessibilityInfo: json['accessibility_info'] as String?,
-        isVerified: json['is_verified'] as bool? ?? false,
-      );
+    id: json['id'] as String,
+    name: json['name'] as String? ?? '',
+    category: json['category'] as String? ?? 'other',
+    description: json['description'] as String?,
+    address: json['address'] as String? ?? '',
+    city: json['city'] as String? ?? '',
+    state: json['state'] as String? ?? '',
+    latitude: (json['latitude'] as num?)?.toDouble() ?? 0,
+    longitude: (json['longitude'] as num?)?.toDouble() ?? 0,
+    phone: json['phone'] as String?,
+    openingHours: json['opening_hours'] as String?,
+    website: json['website'] as String?,
+    accessibilityInfo: json['accessibility_info'] as String?,
+    isVerified: json['is_verified'] as bool? ?? false,
+  );
 }

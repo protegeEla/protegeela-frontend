@@ -27,10 +27,10 @@ class AdminRepository {
   Future<AdminDashboardMetrics> metrics() async {
     final data = await _api.request('GET', '/admin/metrics');
     return AdminDashboardMetrics(
-        totalAlerts: (data['total_alerts'] as num).toInt(),
-        activeAlerts: (data['active_alerts'] as num).toInt(),
-        closedAlerts: (data['closed_alerts'] as num).toInt(),
-        verifiedSupportPoints:
-            (data['verified_support_points'] as num).toInt());
+      totalAlerts: (data['total_alerts'] as num).toInt(),
+      activeAlerts: (data['active_alerts'] as num).toInt(),
+      closedAlerts: (data['closed_alerts'] as num).toInt(),
+      verifiedSupportPoints: (data['verified_support_points'] as num).toInt(),
+    );
   }
 }

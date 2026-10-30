@@ -3,8 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../shared/models/safety_content.dart';
 
-final safetyContentRepositoryProvider =
-    Provider<SafetyContentRepository>((ref) {
+final safetyContentRepositoryProvider = Provider<SafetyContentRepository>((
+  ref,
+) {
   return SafetyContentRepository(ref.watch(apiClientProvider));
 });
 
@@ -15,7 +16,8 @@ final safetyContentsProvider = FutureProvider<List<SafetyContent>>((ref) async {
       title: 'Monte um plano de segurança',
       summary:
           'Prepare caminhos, contatos e itens essenciais antes de uma crise.',
-      content: 'Escolha dois lugares seguros para onde você possa ir.\n'
+      content:
+          'Escolha dois lugares seguros para onde você possa ir.\n'
           'Combine uma palavra-código com pessoas de confiança para pedir ajuda sem explicar tudo.\n'
           'Mantenha documentos, remédios, chaves, algum dinheiro e carregador em local acessível.\n'
           'Planeje uma saída que evite cômodos com armas ou sem rota de fuga.\n'
@@ -118,8 +120,9 @@ final safetyContentsProvider = FutureProvider<List<SafetyContent>>((ref) async {
   ];
 
   try {
-    final published =
-        await ref.watch(safetyContentRepositoryProvider).published();
+    final published = await ref
+        .watch(safetyContentRepositoryProvider)
+        .published();
     return published.isEmpty ? builtInContents : published;
   } catch (_) {
     return builtInContents;

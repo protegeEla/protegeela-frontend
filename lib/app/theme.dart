@@ -121,17 +121,17 @@ ThemeData buildProtegeElaTheme() {
       ),
     ),
     filledButtonTheme: FilledButtonThemeData(
-      style: FilledButton.styleFrom(
-        minimumSize: const Size(48, 50),
-        padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 14),
-        textStyle: const TextStyle(fontWeight: FontWeight.w700),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      ).copyWith(
-        overlayColor: _interactionOverlay(
-          Colors.white,
-          hoverOpacity: 0.10,
-        ),
-      ),
+      style:
+          FilledButton.styleFrom(
+            minimumSize: const Size(48, 50),
+            padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 14),
+            textStyle: const TextStyle(fontWeight: FontWeight.w700),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ).copyWith(
+            overlayColor: _interactionOverlay(Colors.white, hoverOpacity: 0.10),
+          ),
     ),
     outlinedButtonTheme: OutlinedButtonThemeData(
       style: OutlinedButton.styleFrom(
@@ -144,16 +144,19 @@ ThemeData buildProtegeElaTheme() {
       ).copyWith(overlayColor: _interactionOverlay(AppColors.primary)),
     ),
     textButtonTheme: TextButtonThemeData(
-      style: TextButton.styleFrom(
-        foregroundColor: AppColors.primary,
-        textStyle: const TextStyle(fontWeight: FontWeight.w700),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-      ).copyWith(
-        overlayColor: _interactionOverlay(
-          AppColors.primary,
-          hoverOpacity: 0.045,
-        ),
-      ),
+      style:
+          TextButton.styleFrom(
+            foregroundColor: AppColors.primary,
+            textStyle: const TextStyle(fontWeight: FontWeight.w700),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+          ).copyWith(
+            overlayColor: _interactionOverlay(
+              AppColors.primary,
+              hoverOpacity: 0.045,
+            ),
+          ),
     ),
     iconButtonTheme: IconButtonThemeData(
       style: IconButton.styleFrom(

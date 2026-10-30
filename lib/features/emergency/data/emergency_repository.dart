@@ -15,11 +15,11 @@ final emergencyRepositoryProvider = Provider<EmergencyRepository>((ref) {
 // the same position again. Auto-dispose also clears coordinates on leaving it.
 final latestAlertLocationProvider = FutureProvider.autoDispose
     .family<AlertLocation?, String>((ref, alertId) async {
-  ref.watch(currentUserProvider.select((user) => user?.id));
-  final demoActive = await ref.watch(demoSessionProvider.future);
-  if (demoActive) return null;
-  return ref.watch(emergencyRepositoryProvider).latestLocation(alertId);
-});
+      ref.watch(currentUserProvider.select((user) => user?.id));
+      final demoActive = await ref.watch(demoSessionProvider.future);
+      if (demoActive) return null;
+      return ref.watch(emergencyRepositoryProvider).latestLocation(alertId);
+    });
 
 class EmergencyRepository {
   const EmergencyRepository(this._api);
@@ -32,41 +32,58 @@ class EmergencyRepository {
         : EmergencyAlert.fromJson(data['alert'] as Map<String, dynamic>);
   }
 
-  Future<EmergencyAlert> createAlert(
-      {required String clientRequestId,
-      required String alertType,
-      required bool isSilent,
-      bool publicVisibility = false,
-      LocationCapture? location,
-      required String locationStatus}) async {
-    final data = await _api.request('POST', '/alerts', body: {
-      'client_request_id': clientRequestId,
-      'alert_type': alertType,
-      'is_silent': isSilent,
-      'location_status': locationStatus,
-      'location': location?.toJson(),
-      'public_visibility': publicVisibility && !isSilent,
-    });
+  Future<EmergencyAlert> createAlert({
+    required String clientRequestId,
+    required String alertType,
+    required bool isSilent,
+    bool publicVisibility = false,
+    LocationCapture? location,
+    required String locationStatus,
+  }) async {
+    final data = await _api.request(
+      'POST',
+      '/alerts',
+      body: {
+        'client_request_id': clientRequestId,
+        'alert_type': alertType,
+        'is_silent': isSilent,
+        'location_status': locationStatus,
+        'location': location?.toJson(),
+        'public_visibility': publicVisibility && !isSilent,
+      },
+    );
     return EmergencyAlert.fromJson(data['alert'] as Map<String, dynamic>);
   }
 
-  Future<void> updateLocation(
-      {required String alertId, required LocationCapture location}) async {
-    await _api.request('PUT', '/alerts/$alertId/location',
-        body: {'location': location.toJson()});
+  Future<void> updateLocation({
+    required String alertId,
+    required LocationCapture location,
+  }) async {
+    await _api.request(
+      'PUT',
+      '/alerts/$alertId/location',
+      body: {'location': location.toJson()},
+    );
   }
 
-  Future<void> closeAlert(
-      {required String alertId, required String reason, String? pin}) async {
-    await _api
-        .request('POST', '/alerts/$alertId/close', body: {'reason': reason});
+  Future<void> closeAlert({
+    required String alertId,
+    required String reason,
+    String? pin,
+  }) async {
+    await _api.request(
+      'POST',
+      '/alerts/$alertId/close',
+      body: {'reason': reason},
+    );
   }
 
   Stream<EmergencyAlert> watchAlert(String alertId) async* {
     while (_api.isAuthenticated) {
       final data = await _api.request('GET', '/alerts/$alertId');
-      final alert =
-          EmergencyAlert.fromJson(data['alert'] as Map<String, dynamic>);
+      final alert = EmergencyAlert.fromJson(
+        data['alert'] as Map<String, dynamic>,
+      );
       yield alert;
       if (!alert.isActive) return;
       await Future<void>.delayed(const Duration(seconds: 10));

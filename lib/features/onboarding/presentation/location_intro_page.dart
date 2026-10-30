@@ -26,11 +26,11 @@ class _LocationIntroPageState extends State<LocationIntroPage> {
       final permission = await Geolocator.requestPermission();
       if (!mounted) return;
       setState(() {
-        _permissionGranted = permission == LocationPermission.always ||
+        _permissionGranted =
+            permission == LocationPermission.always ||
             permission == LocationPermission.whileInUse;
         _permissionMessage = switch (permission) {
-          LocationPermission.always ||
-          LocationPermission.whileInUse =>
+          LocationPermission.always || LocationPermission.whileInUse =>
             'Permissão concedida. Você pode criar sua conta ou entrar.',
           LocationPermission.deniedForever =>
             'Localização bloqueada. Você pode liberar nas configurações do navegador ou continuar sem permitir.',
@@ -42,8 +42,10 @@ class _LocationIntroPageState extends State<LocationIntroPage> {
       });
     } catch (_) {
       if (mounted) {
-        setState(() => _permissionMessage =
-            'Não foi possível solicitar a localização. Tente novamente ou continue sem permitir.');
+        setState(
+          () => _permissionMessage =
+              'Não foi possível solicitar a localização. Tente novamente ou continue sem permitir.',
+        );
       }
     } finally {
       if (mounted) setState(() => _requestingPermission = false);
@@ -69,9 +71,11 @@ class _LocationIntroPageState extends State<LocationIntroPage> {
                 children: [
                   const Icon(Icons.location_on_outlined, size: 56),
                   const SizedBox(height: 16),
-                  Text('Você decide quando permitir',
-                      style: Theme.of(context).textTheme.headlineMedium,
-                      textAlign: TextAlign.center),
+                  Text(
+                    'Você decide quando permitir',
+                    style: Theme.of(context).textTheme.headlineMedium,
+                    textAlign: TextAlign.center,
+                  ),
                   const SizedBox(height: 12),
                   const Text(
                     'Você pode permitir localização agora ou somente ao pedir ajuda. Ausência de GPS nunca bloqueia a criação do alerta.',
@@ -87,28 +91,36 @@ class _LocationIntroPageState extends State<LocationIntroPage> {
                             dimension: 18,
                             child: CircularProgressIndicator(strokeWidth: 2),
                           )
-                        : Icon(_permissionGranted
-                            ? Icons.check_rounded
-                            : Icons.location_on_outlined),
-                    label: Text(_permissionGranted
-                        ? 'Localização permitida'
-                        : 'Permitir localização'),
+                        : Icon(
+                            _permissionGranted
+                                ? Icons.check_rounded
+                                : Icons.location_on_outlined,
+                          ),
+                    label: Text(
+                      _permissionGranted
+                          ? 'Localização permitida'
+                          : 'Permitir localização',
+                    ),
                   ),
                   if (_permissionMessage != null) ...[
                     const SizedBox(height: 12),
                     Semantics(
                       liveRegion: true,
-                      child: Text(_permissionMessage!,
-                          textAlign: TextAlign.center),
+                      child: Text(
+                        _permissionMessage!,
+                        textAlign: TextAlign.center,
+                      ),
                     ),
                   ],
                   const SizedBox(height: 16),
                   FilledButton(
-                      onPressed: () => context.go('/cadastro'),
-                      child: const Text('Criar conta')),
+                    onPressed: () => context.go('/cadastro'),
+                    child: const Text('Criar conta'),
+                  ),
                   TextButton(
-                      onPressed: () => context.go('/login'),
-                      child: const Text('Entrar')),
+                    onPressed: () => context.go('/login'),
+                    child: const Text('Entrar'),
+                  ),
                 ],
               ),
             ),

@@ -18,9 +18,11 @@ class AdminDashboardPage extends ConsumerWidget {
     final profile = ref.watch(currentProfileProvider).valueOrNull;
     if (profile?.isAdmin != true) {
       return const Scaffold(
-          body: AppStateView(
-              title: 'Acesso restrito',
-              message: 'Somente administradores podem acessar este painel.'));
+        body: AppStateView(
+          title: 'Acesso restrito',
+          message: 'Somente administradores podem acessar este painel.',
+        ),
+      );
     }
 
     final metrics = ref.watch(adminMetricsProvider);
@@ -47,7 +49,9 @@ class AdminDashboardPage extends ConsumerWidget {
             _Metric(label: 'Ativos', value: data.activeAlerts),
             _Metric(label: 'Encerrados', value: data.closedAlerts),
             _Metric(
-                label: 'Pontos verificados', value: data.verifiedSupportPoints),
+              label: 'Pontos verificados',
+              value: data.verifiedSupportPoints,
+            ),
           ],
         ),
       ),

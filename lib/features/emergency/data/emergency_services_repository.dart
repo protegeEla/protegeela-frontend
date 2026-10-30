@@ -5,8 +5,8 @@ import '../../../shared/models/emergency_service.dart';
 
 final emergencyServicesRepositoryProvider =
     Provider<EmergencyServicesRepository>((ref) {
-  return EmergencyServicesRepository(ref.watch(apiClientProvider));
-});
+      return EmergencyServicesRepository(ref.watch(apiClientProvider));
+    });
 
 class EmergencyServicesRepository {
   const EmergencyServicesRepository(this._api);

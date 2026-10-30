@@ -17,7 +17,8 @@ class ProtectionReadinessCard extends ConsumerWidget {
     final contacts = ref.watch(trustedContactsProvider);
     final location = ref.watch(locationReadinessProvider);
     final contactList = contacts.valueOrNull ?? const [];
-    final profileReady = profile.fullName.trim().isNotEmpty &&
+    final profileReady =
+        profile.fullName.trim().isNotEmpty &&
         profile.phone.replaceAll(RegExp(r'\D'), '').length >= 10;
     final contactsReady = contactList.length >= 2;
     final confirmedContact = contactList.any(
@@ -63,8 +64,8 @@ class ProtectionReadinessCard extends ConsumerWidget {
         description: contacts.hasError
             ? 'Não foi possível consultar os contatos.'
             : confirmedContact
-                ? 'Sua rede possui um contato confirmado.'
-                : 'Convites estarão disponíveis com o envio de mensagens.',
+            ? 'Sua rede possui um contato confirmado.'
+            : 'Convites estarão disponíveis com o envio de mensagens.',
         complete: confirmedContact,
         loading: contacts.isLoading,
         onTap: confirmedContact ? null : () => context.go('/contatos'),
@@ -185,9 +186,9 @@ class ProtectionReadinessCard extends ConsumerWidget {
           'Libere a localização nas configurações do navegador.',
         _ => 'A localização não foi autorizada.',
       };
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(message)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(message)));
     } catch (_) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

@@ -47,9 +47,8 @@ class ProfilePage extends ConsumerWidget {
                       const SizedBox(height: 22),
                       Expanded(
                         child: profile.when(
-                          loading: () => const Center(
-                            child: CircularProgressIndicator(),
-                          ),
+                          loading: () =>
+                              const Center(child: CircularProgressIndicator()),
                           error: (_, __) => const AppStateView(
                             title: 'Erro',
                             message: 'Não foi possível carregar seu perfil.',
@@ -104,8 +103,10 @@ class ProfilePage extends ConsumerWidget {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-              content: Text(
-                  'Não foi possível salvar a preferência. Tente novamente.')),
+            content: Text(
+              'Não foi possível salvar a preferência. Tente novamente.',
+            ),
+          ),
         );
       }
     }
@@ -123,8 +124,8 @@ class ProfilePage extends ConsumerWidget {
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-                content:
-                    Text('Não foi possível confirmar a saída no servidor.')),
+              content: Text('Não foi possível confirmar a saída no servidor.'),
+            ),
           );
         }
       }
@@ -146,8 +147,9 @@ class _ProfileContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final initial =
-        profile.firstName.isEmpty ? 'U' : profile.firstName[0].toUpperCase();
+    final initial = profile.firstName.isEmpty
+        ? 'U'
+        : profile.firstName[0].toUpperCase();
     return ListView(
       padding: const EdgeInsets.only(bottom: 20),
       children: [
@@ -281,8 +283,10 @@ class _PreferenceTile extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(title,
-                      style: const TextStyle(fontWeight: FontWeight.w700)),
+                  Text(
+                    title,
+                    style: const TextStyle(fontWeight: FontWeight.w700),
+                  ),
                   const SizedBox(height: 3),
                   Text(
                     subtitle,

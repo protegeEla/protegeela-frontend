@@ -3,13 +3,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 final notificationCenterRepositoryProvider =
     Provider<NotificationCenterRepository>((ref) {
-  return NotificationCenterRepository(ref.watch(apiClientProvider));
-});
+      return NotificationCenterRepository(ref.watch(apiClientProvider));
+    });
 
 final alertNotificationSummaryProvider = FutureProvider.autoDispose
     .family<AlertNotificationSummary, String>((ref, alertId) {
-  return ref.watch(notificationCenterRepositoryProvider).status(alertId);
-});
+      return ref.watch(notificationCenterRepositoryProvider).status(alertId);
+    });
 
 class AlertNotificationSummary {
   const AlertNotificationSummary({required this.status, required this.sent});

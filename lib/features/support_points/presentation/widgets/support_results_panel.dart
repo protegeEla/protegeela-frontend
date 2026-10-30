@@ -182,9 +182,7 @@ class _SupportPointCard extends StatelessWidget {
                 SizedBox(
                   width: double.infinity,
                   child: OutlinedButton.icon(
-                    onPressed: () => launchUrl(
-                      Uri(scheme: 'tel', path: phone),
-                    ),
+                    onPressed: () => launchUrl(Uri(scheme: 'tel', path: phone)),
                     icon: const Icon(Icons.phone_outlined, size: 17),
                     label: Text('Ligar para $phone'),
                     style: OutlinedButton.styleFrom(
@@ -218,10 +216,7 @@ class _InfoLine extends StatelessWidget {
         Expanded(
           child: Text(
             text,
-            style: const TextStyle(
-              color: AppColors.textMuted,
-              fontSize: 11.5,
-            ),
+            style: const TextStyle(color: AppColors.textMuted, fontSize: 11.5),
           ),
         ),
       ],

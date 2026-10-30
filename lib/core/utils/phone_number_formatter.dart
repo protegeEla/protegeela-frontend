@@ -45,7 +45,8 @@ class BrazilianPhoneInputFormatter extends TextInputFormatter {
     var newDigits = PhoneNumberFormatter.normalize(newValue.text);
     var digitsBeforeCursor = _digitsBeforeCursor(newValue);
 
-    final removedOnlyFormatting = newValue.text.length < oldValue.text.length &&
+    final removedOnlyFormatting =
+        newValue.text.length < oldValue.text.length &&
         newDigits == oldDigits &&
         newDigits.isNotEmpty;
     if (removedOnlyFormatting) {
@@ -66,9 +67,9 @@ class BrazilianPhoneInputFormatter extends TextInputFormatter {
 
   int _digitsBeforeCursor(TextEditingValue value) {
     final cursor = value.selection.extentOffset.clamp(0, value.text.length);
-    return PhoneNumberFormatter.digitsOnly(value.text.substring(0, cursor))
-        .length
-        .clamp(0, 11);
+    return PhoneNumberFormatter.digitsOnly(
+      value.text.substring(0, cursor),
+    ).length.clamp(0, 11);
   }
 
   int _selectionOffset(String formatted, int digitsBeforeCursor) {

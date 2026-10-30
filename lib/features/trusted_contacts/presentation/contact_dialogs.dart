@@ -107,7 +107,8 @@ class _ContactFormDialogState extends State<_ContactFormDialog> {
     final contact = widget.contact;
     _name = TextEditingController(text: contact?.name ?? '');
     _phone = TextEditingController(
-        text: PhoneNumberFormatter.format(contact?.phone ?? ''));
+      text: PhoneNumberFormatter.format(contact?.phone ?? ''),
+    );
     _email = TextEditingController(text: contact?.email ?? '');
     _relationship = contact?.relationship == 'demo'
         ? 'amiga'
@@ -146,7 +147,8 @@ class _ContactFormDialogState extends State<_ContactFormDialog> {
       title: Row(
         children: [
           Expanded(
-              child: Text(_editing ? 'Editar contato' : 'Adicionar contato')),
+            child: Text(_editing ? 'Editar contato' : 'Adicionar contato'),
+          ),
           IconButton(
             onPressed: () => Navigator.pop(context),
             tooltip: 'Fechar',
@@ -216,7 +218,9 @@ class _ContactFormDialogState extends State<_ContactFormDialog> {
                   ),
                   items: const [
                     DropdownMenuItem(
-                        value: 'whatsapp', child: Text('WhatsApp')),
+                      value: 'whatsapp',
+                      child: Text('WhatsApp'),
+                    ),
                     DropdownMenuItem(value: 'sms', child: Text('SMS')),
                     DropdownMenuItem(value: 'email', child: Text('E-mail')),
                     DropdownMenuItem(value: 'call', child: Text('Ligação')),
@@ -336,10 +340,7 @@ class _ContactAccessDialogState extends State<_ContactAccessDialog> {
 }
 
 class _LocationPermissionTile extends StatelessWidget {
-  const _LocationPermissionTile({
-    required this.value,
-    required this.onChanged,
-  });
+  const _LocationPermissionTile({required this.value, required this.onChanged});
 
   final bool value;
   final ValueChanged<bool> onChanged;
@@ -367,10 +368,7 @@ class _LocationPermissionTile extends StatelessWidget {
                 SizedBox(height: 2),
                 Text(
                   'Permitir compartilhamento quando disponível',
-                  style: TextStyle(
-                    color: AppColors.textMuted,
-                    fontSize: 11.5,
-                  ),
+                  style: TextStyle(color: AppColors.textMuted, fontSize: 11.5),
                 ),
               ],
             ),
@@ -383,10 +381,7 @@ class _LocationPermissionTile extends StatelessWidget {
 }
 
 class _RelationshipSelector extends StatelessWidget {
-  const _RelationshipSelector({
-    required this.value,
-    required this.onChanged,
-  });
+  const _RelationshipSelector({required this.value, required this.onChanged});
 
   static const _options = [
     _RelationshipOption(

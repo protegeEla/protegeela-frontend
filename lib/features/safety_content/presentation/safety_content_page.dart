@@ -159,11 +159,13 @@ class _SafetyGuide extends StatelessWidget {
   Widget build(BuildContext context) {
     final normalizedQuery = query.trim().toLowerCase();
     final filtered = items.where((item) {
-      final categoryMatches = selectedCategory == 'all' ||
+      final categoryMatches =
+          selectedCategory == 'all' ||
           (selectedCategory == 'favorites'
               ? favorites.contains(item.id)
               : item.category == selectedCategory);
-      final searchMatches = normalizedQuery.isEmpty ||
+      final searchMatches =
+          normalizedQuery.isEmpty ||
           '${item.title} ${item.summary} ${item.content}'
               .toLowerCase()
               .contains(normalizedQuery);
@@ -220,10 +222,7 @@ class _SafetyGuide extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 16),
-              _EmergencyChannels(
-                onCall190: onCall190,
-                onCall180: onCall180,
-              ),
+              _EmergencyChannels(onCall190: onCall190, onCall180: onCall180),
               const SizedBox(height: 24),
               TextField(
                 controller: searchController,
@@ -308,36 +307,33 @@ class _SafetyGuide extends StatelessWidget {
   }
 
   static String _categoryLabel(String category) => switch (category) {
-        'all' => 'Todos',
-        'favorites' => 'Favoritos',
-        'safety_plan' => 'Plano de segurança',
-        'support_network' => 'Rede de apoio',
-        'digital_security' => 'Segurança digital',
-        'evidence' => 'Provas',
-        'health' => 'Saúde',
-        'rights' => 'Direitos',
-        'channels' => 'Canais oficiais',
-        _ => 'Outros',
-      };
+    'all' => 'Todos',
+    'favorites' => 'Favoritos',
+    'safety_plan' => 'Plano de segurança',
+    'support_network' => 'Rede de apoio',
+    'digital_security' => 'Segurança digital',
+    'evidence' => 'Provas',
+    'health' => 'Saúde',
+    'rights' => 'Direitos',
+    'channels' => 'Canais oficiais',
+    _ => 'Outros',
+  };
 
   static IconData _categoryIcon(String category) => switch (category) {
-        'all' => Icons.apps_rounded,
-        'safety_plan' => Icons.route_outlined,
-        'support_network' => Icons.people_outline_rounded,
-        'digital_security' => Icons.phonelink_lock_outlined,
-        'evidence' => Icons.folder_copy_outlined,
-        'health' => Icons.health_and_safety_outlined,
-        'rights' => Icons.gavel_rounded,
-        'channels' => Icons.contact_phone_outlined,
-        _ => Icons.lightbulb_outline_rounded,
-      };
+    'all' => Icons.apps_rounded,
+    'safety_plan' => Icons.route_outlined,
+    'support_network' => Icons.people_outline_rounded,
+    'digital_security' => Icons.phonelink_lock_outlined,
+    'evidence' => Icons.folder_copy_outlined,
+    'health' => Icons.health_and_safety_outlined,
+    'rights' => Icons.gavel_rounded,
+    'channels' => Icons.contact_phone_outlined,
+    _ => Icons.lightbulb_outline_rounded,
+  };
 }
 
 class _EmergencyChannels extends StatelessWidget {
-  const _EmergencyChannels({
-    required this.onCall190,
-    required this.onCall180,
-  });
+  const _EmergencyChannels({required this.onCall190, required this.onCall180});
 
   final VoidCallback onCall190;
   final VoidCallback onCall180;
@@ -374,11 +370,7 @@ class _EmergencyChannels extends StatelessWidget {
                 ],
               )
             : Column(
-                children: [
-                  emergency,
-                  const SizedBox(height: 12),
-                  guidance,
-                ],
+                children: [emergency, const SizedBox(height: 12), guidance],
               );
       },
     );
@@ -531,8 +523,11 @@ class _GuideCard extends StatelessWidget {
             const Divider(),
             Row(
               children: [
-                const Icon(Icons.verified_outlined,
-                    color: AppColors.primary, size: 17),
+                const Icon(
+                  Icons.verified_outlined,
+                  color: AppColors.primary,
+                  size: 17,
+                ),
                 const SizedBox(width: 7),
                 Expanded(
                   child: Text(

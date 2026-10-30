@@ -19,23 +19,23 @@ class HoldFeedback extends CustomPainter {
     for (var i = 0; i < 2; i++) {
       final phase = (value * 6 + i / 2) % 1;
       canvas.drawCircle(
-          center,
-          radius * (0.79 + phase * 0.20),
-          Paint()
-            ..style = PaintingStyle.stroke
-            ..strokeWidth = 3 * (1 - phase) + 1
-            ..color =
-                AppColors.emergency.withValues(alpha: (1 - phase) * 0.24));
+        center,
+        radius * (0.79 + phase * 0.20),
+        Paint()
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 3 * (1 - phase) + 1
+          ..color = AppColors.emergency.withValues(alpha: (1 - phase) * 0.24),
+      );
     }
     for (var i = 0; i < 5; i++) {
       final angle = -math.pi / 2 + i * math.pi * 2 / 5;
       final reached = value >= (i + 1) / 5;
       canvas.drawCircle(
-          center + Offset(math.cos(angle), math.sin(angle)) * radius * 0.95,
-          reached ? 4 : 2.5,
-          Paint()
-            ..color =
-                AppColors.emergency.withValues(alpha: reached ? 0.9 : 0.2));
+        center + Offset(math.cos(angle), math.sin(angle)) * radius * 0.95,
+        reached ? 4 : 2.5,
+        Paint()
+          ..color = AppColors.emergency.withValues(alpha: reached ? 0.9 : 0.2),
+      );
     }
   }
 

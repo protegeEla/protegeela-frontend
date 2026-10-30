@@ -21,11 +21,7 @@ class NeutralPage extends StatelessWidget {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(
-                  Icons.public_rounded,
-                  size: 52,
-                  color: Color(0xFF64748B),
-                ),
+                Icon(Icons.public_rounded, size: 52, color: Color(0xFF64748B)),
                 SizedBox(height: 18),
                 Text(
                   'Bem-vinda',

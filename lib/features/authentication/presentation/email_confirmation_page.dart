@@ -29,8 +29,9 @@ class EmailConfirmationPage extends StatelessWidget {
                 ),
                 const SizedBox(height: 20),
                 FilledButton(
-                    onPressed: () => context.go('/login'),
-                    child: const Text('Ir para login')),
+                  onPressed: () => context.go('/login'),
+                  child: const Text('Ir para login'),
+                ),
               ],
             ),
           ),

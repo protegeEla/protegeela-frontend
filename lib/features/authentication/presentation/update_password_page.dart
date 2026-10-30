@@ -84,10 +84,7 @@ class _UpdatePasswordPageState extends ConsumerState<UpdatePasswordPage> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const ProtegeElaBrand(
-                          compact: true,
-                          showTagline: true,
-                        ),
+                        const ProtegeElaBrand(compact: true, showTagline: true),
                         const SizedBox(height: 30),
                         Center(
                           child: Container(
@@ -142,9 +139,9 @@ class _UpdatePasswordPageState extends ConsumerState<UpdatePasswordPage> {
             'Crie uma nova senha',
             textAlign: TextAlign.center,
             style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                  color: AppColors.primaryDark,
-                  fontWeight: FontWeight.w900,
-                ),
+              color: AppColors.primaryDark,
+              fontWeight: FontWeight.w900,
+            ),
           ),
           const SizedBox(height: 8),
           const Text(
@@ -163,9 +160,8 @@ class _UpdatePasswordPageState extends ConsumerState<UpdatePasswordPage> {
               prefixIcon: const Icon(Icons.lock_outline_rounded),
               suffixIcon: IconButton(
                 tooltip: _obscurePassword ? 'Mostrar senha' : 'Ocultar senha',
-                onPressed: () => setState(
-                  () => _obscurePassword = !_obscurePassword,
-                ),
+                onPressed: () =>
+                    setState(() => _obscurePassword = !_obscurePassword),
                 icon: Icon(
                   _obscurePassword
                       ? Icons.visibility_outlined
@@ -186,8 +182,9 @@ class _UpdatePasswordPageState extends ConsumerState<UpdatePasswordPage> {
               labelText: 'Confirmar nova senha',
               prefixIcon: const Icon(Icons.verified_user_outlined),
               suffixIcon: IconButton(
-                tooltip:
-                    _obscureConfirmation ? 'Mostrar senha' : 'Ocultar senha',
+                tooltip: _obscureConfirmation
+                    ? 'Mostrar senha'
+                    : 'Ocultar senha',
                 onPressed: () => setState(
                   () => _obscureConfirmation = !_obscureConfirmation,
                 ),
@@ -256,9 +253,9 @@ class _UpdatePasswordPageState extends ConsumerState<UpdatePasswordPage> {
           'Senha atualizada',
           textAlign: TextAlign.center,
           style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                color: AppColors.primaryDark,
-                fontWeight: FontWeight.w900,
-              ),
+            color: AppColors.primaryDark,
+            fontWeight: FontWeight.w900,
+          ),
         ),
         const SizedBox(height: 10),
         const Text(

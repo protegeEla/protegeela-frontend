@@ -55,8 +55,9 @@ class _SharedTripPageState extends ConsumerState<SharedTripPage>
     _refreshing = true;
     if (!silent && mounted) setState(() => _loading = true);
     try {
-      final trip =
-          await ref.read(sharedTripRepositoryProvider).get(widget.token);
+      final trip = await ref
+          .read(sharedTripRepositoryProvider)
+          .get(widget.token);
       if (!mounted) return;
       setState(() {
         _trip = trip;
@@ -99,13 +100,13 @@ class _SharedTripPageState extends ConsumerState<SharedTripPage>
             child: _loading && _trip == null
                 ? const Center(child: CircularProgressIndicator())
                 : _error != null && _trip == null
-                    ? AppStateView(
-                        title: 'Trajeto indisponível',
-                        message: _error!,
-                        actionLabel: 'Tentar novamente',
-                        onAction: _load,
-                      )
-                    : _content(_trip!),
+                ? AppStateView(
+                    title: 'Trajeto indisponível',
+                    message: _error!,
+                    actionLabel: 'Tentar novamente',
+                    onAction: _load,
+                  )
+                : _content(_trip!),
           ),
         ),
       ),
@@ -139,8 +140,8 @@ class _SharedTripPageState extends ConsumerState<SharedTripPage>
                   active
                       ? Icons.navigation_rounded
                       : overdue
-                          ? Icons.warning_amber_rounded
-                          : Icons.verified_rounded,
+                      ? Icons.warning_amber_rounded
+                      : Icons.verified_rounded,
                   color: overdue ? AppColors.emergency : AppColors.primary,
                   size: 34,
                 ),
@@ -177,8 +178,11 @@ class _SharedTripPageState extends ConsumerState<SharedTripPage>
               padding: EdgeInsets.all(28),
               child: Column(
                 children: [
-                  Icon(Icons.location_searching_rounded,
-                      color: AppColors.primary, size: 42),
+                  Icon(
+                    Icons.location_searching_rounded,
+                    color: AppColors.primary,
+                    size: 42,
+                  ),
                   SizedBox(height: 12),
                   Text(
                     'Aguardando a primeira localização',
@@ -251,8 +255,9 @@ class _SharedTripPageState extends ConsumerState<SharedTripPage>
                     attributions: [
                       TextSourceAttribution(
                         'OpenStreetMap contributors',
-                        onTap: () => launchUrl(Uri.parse(
-                            'https://www.openstreetmap.org/copyright')),
+                        onTap: () => launchUrl(
+                          Uri.parse('https://www.openstreetmap.org/copyright'),
+                        ),
                       ),
                     ],
                   ),
@@ -279,23 +284,22 @@ class _SharedTripPageState extends ConsumerState<SharedTripPage>
   }
 
   String _statusTitle(SharedTrip trip) => switch (trip.status) {
-        'active' => '${trip.travelerName} está a caminho',
-        'completed' => '${trip.travelerName} chegou bem',
-        'cancelled' => 'Acompanhamento cancelado',
-        'overdue' => '${trip.travelerName} não confirmou a chegada',
-        _ => 'Acompanhamento de trajeto',
-      };
+    'active' => '${trip.travelerName} está a caminho',
+    'completed' => '${trip.travelerName} chegou bem',
+    'cancelled' => 'Acompanhamento cancelado',
+    'overdue' => '${trip.travelerName} não confirmou a chegada',
+    _ => 'Acompanhamento de trajeto',
+  };
 
   String _statusDescription(SharedTrip trip) => switch (trip.status) {
-        'active' =>
-          'Chegada prevista para ${DateFormat('HH:mm').format(trip.expectedAt.toLocal())}. O mapa atualiza a cada poucos segundos.',
-        'completed' =>
-          'A chegada foi confirmada e o compartilhamento terminou.',
-        'cancelled' => 'A pessoa encerrou o acompanhamento.',
-        'overdue' =>
-          'O prazo e a tolerância terminaram. Verifique se ela precisa de ajuda.',
-        _ => 'Consulte abaixo a última posição disponível.',
-      };
+    'active' =>
+      'Chegada prevista para ${DateFormat('HH:mm').format(trip.expectedAt.toLocal())}. O mapa atualiza a cada poucos segundos.',
+    'completed' => 'A chegada foi confirmada e o compartilhamento terminou.',
+    'cancelled' => 'A pessoa encerrou o acompanhamento.',
+    'overdue' =>
+      'O prazo e a tolerância terminaram. Verifique se ela precisa de ajuda.',
+    _ => 'Consulte abaixo a última posição disponível.',
+  };
 }
 
 class _MapMarker extends StatelessWidget {
@@ -306,14 +310,12 @@ class _MapMarker extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => DecoratedBox(
-        decoration: BoxDecoration(
-          color: color,
-          shape: BoxShape.circle,
-          border: Border.all(color: Colors.white, width: 3),
-          boxShadow: const [
-            BoxShadow(color: Colors.black26, blurRadius: 7),
-          ],
-        ),
-        child: Icon(icon, color: Colors.white, size: 21),
-      );
+    decoration: BoxDecoration(
+      color: color,
+      shape: BoxShape.circle,
+      border: Border.all(color: Colors.white, width: 3),
+      boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 7)],
+    ),
+    child: Icon(icon, color: Colors.white, size: 21),
+  );
 }

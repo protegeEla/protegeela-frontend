@@ -22,16 +22,16 @@ class SafetyContent {
   final DateTime? updatedAt;
 
   factory SafetyContent.fromJson(Map<String, dynamic> json) => SafetyContent(
-        id: json['id'] as String,
-        title: json['title'] as String? ?? '',
-        summary: json['summary'] as String? ?? '',
-        content: json['content'] as String? ?? '',
-        category: json['category'] as String? ?? 'general',
-        isPublished: json['is_published'] as bool? ?? false,
-        sourceName: json['source_name'] as String?,
-        sourceUrl: json['source_url'] as String?,
-        updatedAt: json['updated_at'] == null
-            ? null
-            : DateTime.tryParse(json['updated_at'] as String),
-      );
+    id: json['id'] as String,
+    title: json['title'] as String? ?? '',
+    summary: json['summary'] as String? ?? '',
+    content: json['content'] as String? ?? '',
+    category: json['category'] as String? ?? 'general',
+    isPublished: json['is_published'] as bool? ?? false,
+    sourceName: json['source_name'] as String?,
+    sourceUrl: json['source_url'] as String?,
+    updatedAt: json['updated_at'] == null
+        ? null
+        : DateTime.tryParse(json['updated_at'] as String),
+  );
 }

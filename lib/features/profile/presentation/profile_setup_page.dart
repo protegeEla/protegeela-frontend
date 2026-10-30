@@ -94,7 +94,9 @@ class _ProfileSetupPageState extends ConsumerState<ProfileSetupPage> {
         context.go('/perfil');
         return;
       }
-      await ref.read(profileRepositoryProvider).upsertProfile(
+      await ref
+          .read(profileRepositoryProvider)
+          .upsertProfile(
             fullName: _name.text,
             phone: _phone.text,
             privacyMode: _privacyMode ? 'discreet' : 'standard',
@@ -184,10 +186,10 @@ class _ProfileSetupPageState extends ConsumerState<ProfileSetupPage> {
                                             _name.text.trim().isEmpty
                                                 ? 'P'
                                                 : _name.text
-                                                    .trim()
-                                                    .characters
-                                                    .first
-                                                    .toUpperCase(),
+                                                      .trim()
+                                                      .characters
+                                                      .first
+                                                      .toUpperCase(),
                                             style: TextStyle(
                                               color: AppColors.primary,
                                               fontSize: compactLayout ? 24 : 30,
@@ -221,9 +223,9 @@ class _ProfileSetupPageState extends ConsumerState<ProfileSetupPage> {
                                   widget.editing
                                       ? 'Seus dados pessoais'
                                       : 'Conte um pouco sobre você',
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .headlineMedium,
+                                  style: Theme.of(
+                                    context,
+                                  ).textTheme.headlineMedium,
                                 ),
                                 const SizedBox(height: 12),
                                 Text(
@@ -231,7 +233,8 @@ class _ProfileSetupPageState extends ConsumerState<ProfileSetupPage> {
                                       ? 'Mantenha suas informações atualizadas para sua segurança.'
                                       : 'Essas informações ajudam sua rede de apoio a reconhecer você.',
                                   style: const TextStyle(
-                                      color: AppColors.textMuted),
+                                    color: AppColors.textMuted,
+                                  ),
                                 ),
                                 if (_isDemo) ...[
                                   SizedBox(height: compactLayout ? 8 : 14),
@@ -243,8 +246,9 @@ class _ProfileSetupPageState extends ConsumerState<ProfileSetupPage> {
                                     decoration: BoxDecoration(
                                       color: AppColors.surfaceSoft,
                                       borderRadius: BorderRadius.circular(12),
-                                      border:
-                                          Border.all(color: AppColors.border),
+                                      border: Border.all(
+                                        color: AppColors.border,
+                                      ),
                                     ),
                                     child: const Row(
                                       children: [
@@ -272,8 +276,9 @@ class _ProfileSetupPageState extends ConsumerState<ProfileSetupPage> {
                                     labelText: 'Nome completo',
                                     hintText:
                                         'Como você gostaria de ser chamada?',
-                                    prefixIcon:
-                                        Icon(Icons.person_outline_rounded),
+                                    prefixIcon: Icon(
+                                      Icons.person_outline_rounded,
+                                    ),
                                   ),
                                   validator: (value) =>
                                       Validators.required(value, field: 'Nome'),
@@ -283,7 +288,7 @@ class _ProfileSetupPageState extends ConsumerState<ProfileSetupPage> {
                                   controller: _phone,
                                   keyboardType: TextInputType.phone,
                                   inputFormatters: const [
-                                    BrazilianPhoneInputFormatter()
+                                    BrazilianPhoneInputFormatter(),
                                   ],
                                   textInputAction: TextInputAction.done,
                                   decoration: const InputDecoration(
@@ -300,8 +305,9 @@ class _ProfileSetupPageState extends ConsumerState<ProfileSetupPage> {
                                     readOnly: true,
                                     decoration: const InputDecoration(
                                       labelText: 'E-mail da conta',
-                                      prefixIcon:
-                                          Icon(Icons.mail_outline_rounded),
+                                      prefixIcon: Icon(
+                                        Icons.mail_outline_rounded,
+                                      ),
                                       suffixIcon: Tooltip(
                                         message:
                                             'O e-mail não pode ser alterado aqui',
@@ -353,7 +359,8 @@ class _ProfileSetupPageState extends ConsumerState<ProfileSetupPage> {
                                       Switch(
                                         value: _privacyMode,
                                         onChanged: (value) => setState(
-                                            () => _privacyMode = value),
+                                          () => _privacyMode = value,
+                                        ),
                                       ),
                                     ],
                                   ),

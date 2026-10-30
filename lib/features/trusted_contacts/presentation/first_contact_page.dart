@@ -22,14 +22,17 @@ class FirstContactPage extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 const Text(
-                    'Voce pode cadastrar um contato agora ou fazer isso depois pela rede de apoio. Convites dependem de consentimento.'),
+                  'Voce pode cadastrar um contato agora ou fazer isso depois pela rede de apoio. Convites dependem de consentimento.',
+                ),
                 const SizedBox(height: 20),
                 FilledButton(
-                    onPressed: () => context.go('/contatos'),
-                    child: const Text('Cadastrar contato')),
+                  onPressed: () => context.go('/contatos'),
+                  child: const Text('Cadastrar contato'),
+                ),
                 TextButton(
-                    onPressed: () => context.go('/home'),
-                    child: const Text('Fazer depois')),
+                  onPressed: () => context.go('/home'),
+                  child: const Text('Fazer depois'),
+                ),
               ],
             ),
           ),

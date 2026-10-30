@@ -1,7 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-final appConfigProvider =
-    Provider<AppConfig>((ref) => AppConfig.fromEnvironment());
+final appConfigProvider = Provider<AppConfig>(
+  (ref) => AppConfig.fromEnvironment(),
+);
 
 class AppConfig {
   const AppConfig({
@@ -19,8 +20,9 @@ class AppConfig {
 
   factory AppConfig.fromEnvironment() {
     const apiDefine = String.fromEnvironment('API_BASE_URL');
-    final apiUrl =
-        apiDefine.isNotEmpty ? apiDefine : 'http://localhost:8080/api';
+    final apiUrl = apiDefine.isNotEmpty
+        ? apiDefine
+        : 'http://localhost:8080/api';
     if (apiUrl.isNotEmpty) {
       final uri = Uri.tryParse(apiUrl);
       if (uri == null ||
@@ -30,26 +32,36 @@ class AppConfig {
           uri.hasFragment ||
           uri.userInfo.isNotEmpty) {
         throw ArgumentError(
-            'API_BASE_URL deve ser uma URL HTTP(S) sem credenciais, query ou fragmento.');
+          'API_BASE_URL deve ser uma URL HTTP(S) sem credenciais, query ou fragmento.',
+        );
       }
-      final loopback = const {'localhost', '127.0.0.1', '::1', '[::1]'}
-          .contains(uri.host.toLowerCase());
+      final loopback = const {
+        'localhost',
+        '127.0.0.1',
+        '::1',
+        '[::1]',
+      }.contains(uri.host.toLowerCase());
       if (uri.scheme != 'https' && !loopback) {
         throw ArgumentError(
-            'API_BASE_URL deve usar HTTPS fora do computador local.');
+          'API_BASE_URL deve usar HTTPS fora do computador local.',
+        );
       }
     }
     return AppConfig(
       apiBaseUrl: apiUrl,
-      defaultLatitude: double.tryParse(
-              const String.fromEnvironment('APP_DEFAULT_LATITUDE')) ??
+      defaultLatitude:
+          double.tryParse(
+            const String.fromEnvironment('APP_DEFAULT_LATITUDE'),
+          ) ??
           -3.1190,
-      defaultLongitude: double.tryParse(
-              const String.fromEnvironment('APP_DEFAULT_LONGITUDE')) ??
+      defaultLongitude:
+          double.tryParse(
+            const String.fromEnvironment('APP_DEFAULT_LONGITUDE'),
+          ) ??
           -60.0217,
       defaultZoom:
           double.tryParse(const String.fromEnvironment('APP_DEFAULT_ZOOM')) ??
-              12,
+          12,
     );
   }
 }

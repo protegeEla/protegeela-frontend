@@ -6,6 +6,7 @@ import '../../app/theme.dart';
 import '../../features/authentication/data/auth_repository.dart';
 import '../../features/authentication/data/demo_session_repository.dart';
 import 'protegeela_brand.dart';
+import 'quick_exit_button.dart';
 
 class ResponsiveShell extends ConsumerWidget {
   const ResponsiveShell({super.key, required this.child});
@@ -15,7 +16,11 @@ class ResponsiveShell extends ConsumerWidget {
   static const destinations = [
     _Destination('Início', Icons.home_outlined, Icons.home_rounded, '/home'),
     _Destination(
-        'Mapa e apoio', Icons.map_outlined, Icons.map_rounded, '/mapa'),
+      'Mapa e apoio',
+      Icons.map_outlined,
+      Icons.map_rounded,
+      '/mapa',
+    ),
     _Destination(
       'Rede de apoio',
       Icons.people_outline_rounded,
@@ -41,6 +46,7 @@ class ResponsiveShell extends ConsumerWidget {
 
     if (width >= 900) {
       return Scaffold(
+        appBar: AppBar(actions: const [QuickExitButton()]),
         body: Row(
           children: [
             _DesktopNavigation(
@@ -56,6 +62,7 @@ class ResponsiveShell extends ConsumerWidget {
     }
 
     return Scaffold(
+      appBar: AppBar(actions: const [QuickExitButton()]),
       body: child,
       bottomNavigationBar: _MobileNavigation(
         selectedIndex: selectedIndex,
@@ -76,8 +83,8 @@ class ResponsiveShell extends ConsumerWidget {
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-                content:
-                    Text('Não foi possível confirmar a saída no servidor.')),
+              content: Text('Não foi possível confirmar a saída no servidor.'),
+            ),
           );
         }
       }
@@ -109,9 +116,11 @@ class _DesktopNavigation extends StatelessWidget {
             children: [
               const ProtegeElaBrand(compact: true),
               const SizedBox(height: 38),
-              for (var index = 0;
-                  index < ResponsiveShell.destinations.length;
-                  index++) ...[
+              for (
+                var index = 0;
+                index < ResponsiveShell.destinations.length;
+                index++
+              ) ...[
                 _DesktopNavigationItem(
                   destination: ResponsiveShell.destinations[index],
                   selected: selectedIndex == index,
@@ -254,13 +263,16 @@ class _MobileNavigation extends StatelessWidget {
             height: 78,
             child: Row(
               children: [
-                for (var index = 0;
-                    index < ResponsiveShell.destinations.length;
-                    index++)
+                for (
+                  var index = 0;
+                  index < ResponsiveShell.destinations.length;
+                  index++
+                )
                   Expanded(
                     child: _MobileNavigationItem(
                       destination: ResponsiveShell.destinations[index],
-                      label: ResponsiveShell.destinations[index].label ==
+                      label:
+                          ResponsiveShell.destinations[index].label ==
                               'Rede de apoio'
                           ? 'Rede'
                           : ResponsiveShell.destinations[index].label,

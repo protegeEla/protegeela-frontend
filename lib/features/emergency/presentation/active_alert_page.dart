@@ -8,6 +8,7 @@ import '../../../core/services/emergency_call_service.dart';
 import '../../../core/services/location_service.dart';
 import '../../../core/widgets/app_back_button.dart';
 import '../../../core/widgets/app_state_view.dart';
+import '../../../core/widgets/quick_exit_button.dart';
 import '../../authentication/data/demo_session_repository.dart';
 import '../../notifications/data/notification_center_repository.dart';
 import '../../trusted_contacts/data/trusted_contacts_repository.dart';
@@ -32,10 +33,13 @@ class _ActiveAlertPageState extends ConsumerState<ActiveAlertPage> {
       await action();
     } catch (_) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text(
-              'Não foi possível confirmar a ação. Confira o status e tente novamente.'),
-        ));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Não foi possível confirmar a ação. Confira o status e tente novamente.',
+            ),
+          ),
+        );
       }
     } finally {
       if (mounted) setState(() => _busy = false);
@@ -51,6 +55,7 @@ class _ActiveAlertPageState extends ConsumerState<ActiveAlertPage> {
       appBar: AppBar(
         leading: const AppBackButton(),
         title: const Text('Alerta ativo'),
+        actions: const [QuickExitButton()],
       ),
       body: state.when(
         loading: () => const Center(child: CircularProgressIndicator()),
@@ -70,10 +75,12 @@ class _ActiveAlertPageState extends ConsumerState<ActiveAlertPage> {
               onAction: () => context.go('/home'),
             );
           }
-          final locationState =
-              ref.watch(latestAlertLocationProvider(alert.id));
+          final locationState = ref.watch(
+            latestAlertLocationProvider(alert.id),
+          );
           final location = locationState.valueOrNull;
-          final demo = alert.id.startsWith('demo-alert-') ||
+          final demo =
+              alert.id.startsWith('demo-alert-') ||
               ref.watch(demoSessionProvider).valueOrNull == true;
           final contactsState = ref.watch(trustedContactsProvider);
           final notificationState = demo
@@ -126,54 +133,76 @@ class _ActiveAlertPageState extends ConsumerState<ActiveAlertPage> {
       builder: (_) => AlertDialog(
         title: const Text('Confirmar ligação'),
         content: const Text(
-            'Seu dispositivo tentará abrir o aplicativo de chamadas. A ligação depende do suporte do dispositivo.'),
+          'Seu dispositivo tentará abrir o aplicativo de chamadas. A ligação depende do suporte do dispositivo.',
+        ),
         actions: [
           TextButton(
-              onPressed: () => Navigator.pop(context, false),
-              child: const Text('Cancelar')),
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancelar'),
+          ),
           FilledButton(
-              onPressed: () => Navigator.pop(context, true),
-              child: const Text('Ligar')),
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Ligar'),
+          ),
         ],
       ),
     );
     if (ok == true && context.mounted) {
       if (await ref.read(demoSessionProvider.future)) {
         if (!context.mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text('Demonstração: nenhuma ligação real foi iniciada.'),
-        ));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Demonstração: nenhuma ligação real foi iniciada.'),
+          ),
+        );
         return;
       }
       if (!context.mounted) return;
-      final service =
-          await ref.read(emergencyServicesRepositoryProvider).firstActive();
+      final service = await ref
+          .read(emergencyServicesRepositoryProvider)
+          .firstActive();
       if (!context.mounted) return;
       if (service == null) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-            content:
-                Text('Nenhum serviço de emergência ativo foi configurado.')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Nenhum serviço de emergência ativo foi configurado.',
+            ),
+          ),
+        );
         return;
       }
-      final launched =
-          await ref.read(emergencyCallServiceProvider).call(service.phone);
+      final launched = await ref
+          .read(emergencyCallServiceProvider)
+          .call(service.phone);
       if (!launched && context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-            content:
-                Text('Não foi possível iniciar a ligação neste dispositivo.')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Não foi possível iniciar a ligação neste dispositivo.',
+            ),
+          ),
+        );
       }
     }
   }
 
   Future<void> _updateLocation(
-      BuildContext context, WidgetRef ref, String alertId) async {
+    BuildContext context,
+    WidgetRef ref,
+    String alertId,
+  ) async {
     try {
       final demoActive = await ref.read(demoSessionProvider.future);
       if (demoActive) {
         if (!context.mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-            content:
-                Text('Localização de demonstração. Nenhum dado foi enviado.')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Localização de demonstração. Nenhum dado foi enviado.',
+            ),
+          ),
+        );
         return;
       }
       final location = await ref.read(locationServiceProvider).captureCurrent();
@@ -183,36 +212,48 @@ class _ActiveAlertPageState extends ConsumerState<ActiveAlertPage> {
       ref.invalidate(latestAlertLocationProvider(alertId));
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Localização atualizada.')));
+          const SnackBar(content: Text('Localização atualizada.')),
+        );
       }
     } catch (_) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
             content: Text(
-                'Localização indisponível agora. O alerta continua ativo.')));
+              'Localização indisponível agora. O alerta continua ativo.',
+            ),
+          ),
+        );
       }
     }
   }
 
-  Future<void> _close(BuildContext context, WidgetRef ref,
-      {bool safe = false}) async {
+  Future<void> _close(
+    BuildContext context,
+    WidgetRef ref, {
+    bool safe = false,
+  }) async {
     final reason = await showDialog<String>(
       context: context,
       builder: (_) => AlertDialog(
         title: Text(safe ? 'Você está em local seguro?' : 'Encerrar alerta?'),
         content: const Text(
-            'Ao confirmar, o acompanhamento deste alerta será encerrado.'),
+          'Ao confirmar, o acompanhamento deste alerta será encerrado.',
+        ),
         actions: [
           TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Cancelar')),
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancelar'),
+          ),
           FilledButton(
-              onPressed: () => Navigator.pop(context, 'safe'),
-              child: const Text('Estou segura')),
+            onPressed: () => Navigator.pop(context, 'safe'),
+            child: const Text('Estou segura'),
+          ),
           if (!safe)
             OutlinedButton(
-                onPressed: () => Navigator.pop(context, 'help_received'),
-                child: const Text('Recebi ajuda')),
+              onPressed: () => Navigator.pop(context, 'help_received'),
+              child: const Text('Recebi ajuda'),
+            ),
         ],
       ),
     );

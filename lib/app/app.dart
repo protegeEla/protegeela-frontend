@@ -19,9 +19,7 @@ class ProtegeElaApp extends ConsumerWidget {
       debugShowCheckedModeBanner: false,
       theme: buildProtegeElaTheme(),
       builder: (context, child) => CheckInLocationTracker(
-        child: NetworkStatusOverlay(
-          child: child ?? const SizedBox.shrink(),
-        ),
+        child: NetworkStatusOverlay(child: child ?? const SizedBox.shrink()),
       ),
       routerConfig: router,
       locale: const Locale('pt', 'BR'),

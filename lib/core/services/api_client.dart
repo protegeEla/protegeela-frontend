@@ -16,19 +16,15 @@ final apiClientProvider = Provider<ApiClient>((ref) {
 
 /// Keeps a regular session in memory and persists it only when requested.
 class ApiClient {
-  ApiClient(
-    String baseUrl, {
-    http.Client? client,
-    FlutterSecureStorage? storage,
-  })  : _baseUrl = baseUrl.replaceFirst(RegExp(r'/+$'), ''),
-        _client = client ?? http.Client(),
-        _storage = storage;
+  ApiClient(String baseUrl, {http.Client? client, this.storage})
+    : _baseUrl = baseUrl.replaceFirst(RegExp(r'/+$'), ''),
+      _client = client ?? http.Client();
 
   static const _persistentSessionKey = 'protegeela.auth.session.v1';
 
   final String _baseUrl;
   final http.Client _client;
-  final FlutterSecureStorage? _storage;
+  final FlutterSecureStorage? storage;
   final _changes = StreamController<void>.broadcast();
   String? _token;
   int _sessionVersion = 0;
@@ -37,6 +33,7 @@ class ApiClient {
 
   Stream<void> get sessionChanges => _changes.stream;
   bool get isAuthenticated => _token != null;
+  int get sessionVersion => _sessionVersion;
 
   Uri get alertsWebSocketUri {
     final base = Uri.parse('$_baseUrl/ws/alerts');
@@ -48,7 +45,8 @@ class ApiClient {
       ? null
       : jsonEncode({'type': 'authenticate', 'token': _token});
   Future<void> restoreSession() async {
-    final storage = _storage;
+    final sessionVersion = _sessionVersion;
+    final storage = this.storage;
     if (storage == null) return;
 
     String? encoded;
@@ -57,7 +55,7 @@ class ApiClient {
     } catch (_) {
       return;
     }
-    if (encoded == null) return;
+    if (encoded == null || sessionVersion != _sessionVersion) return;
 
     try {
       final data = jsonDecode(encoded);
@@ -82,8 +80,11 @@ class ApiClient {
     }
   }
 
-  Future<void> setSession(Map<String, dynamic> data, String userEmail,
-      {required bool rememberMe}) async {
+  Future<void> setSession(
+    Map<String, dynamic> data,
+    String userEmail, {
+    required bool rememberMe,
+  }) async {
     final token = data['token'];
     final profile = data['profile'];
     if (token is! String ||
@@ -98,7 +99,7 @@ class ApiClient {
     userId = profile['id'] as String;
     email = userEmail.trim();
     try {
-      final storage = _storage;
+      final storage = this.storage;
       if (storage != null) {
         if (rememberMe) {
           await storage.write(
@@ -116,7 +117,8 @@ class ApiClient {
     } catch (_) {
       _resetSession();
       throw const AppException(
-          'N\u00e3o foi poss\u00edvel manter a sess\u00e3o neste dispositivo.');
+        'N\u00e3o foi poss\u00edvel manter a sess\u00e3o neste dispositivo.',
+      );
     }
     _changes.add(null);
   }
@@ -124,7 +126,7 @@ class ApiClient {
   Future<void> clearSession() async {
     _resetSession();
     try {
-      final storage = _storage;
+      final storage = this.storage;
       if (storage != null) {
         await storage.delete(key: _persistentSessionKey);
       }
@@ -140,8 +142,12 @@ class ApiClient {
     email = null;
   }
 
-  Future<Map<String, dynamic>> request(String method, String path,
-      {Map<String, dynamic>? body, bool authenticated = true}) async {
+  Future<Map<String, dynamic>> request(
+    String method,
+    String path, {
+    Map<String, dynamic>? body,
+    bool authenticated = true,
+  }) async {
     final token = _token;
     final sessionVersion = _sessionVersion;
     if (authenticated && token == null) {
@@ -161,28 +167,29 @@ class ApiClient {
           .timeout(const Duration(seconds: 20));
       if (authenticated && sessionVersion != _sessionVersion) {
         throw const AppException(
-            'A sessão mudou. Atualize a página antes de continuar.',
-            code: 'session_changed');
+          'A sessão mudou. Atualize a página antes de continuar.',
+          code: 'session_changed',
+        );
       }
       if (response.statusCode == 401 && authenticated && _token == token) {
         await clearSession();
       }
       if (response.statusCode < 200 || response.statusCode >= 300) {
-        throw AppException(
-            switch (response.statusCode) {
-              401 => authenticated
-                  ? 'Sessão expirada. Entre novamente.'
-                  : 'E-mail ou senha inválidos.',
-              409 => path == '/auth/register'
-                  ? 'Este e-mail já está cadastrado.'
-                  : 'A operação conflita com o estado atual. Atualize os dados e tente novamente.',
-              400 => 'Confira os dados informados e tente novamente.',
-              403 => 'Você não tem permissão para esta ação.',
-              429 when path == '/auth/login' || path == '/auth/register' =>
-                'Muitas tentativas. Aguarde 15 minutos e tente novamente.',
-              _ => 'Não foi possível concluir a solicitação. Tente novamente.',
-            },
-            code: 'http_${response.statusCode}');
+        throw AppException(switch (response.statusCode) {
+          401 =>
+            authenticated
+                ? 'Sessão expirada. Entre novamente.'
+                : 'E-mail ou senha inválidos.',
+          409 =>
+            path == '/auth/register'
+                ? 'Este e-mail já está cadastrado.'
+                : 'A operação conflita com o estado atual. Atualize os dados e tente novamente.',
+          400 => 'Confira os dados informados e tente novamente.',
+          403 => 'Você não tem permissão para esta ação.',
+          429 when path == '/auth/login' || path == '/auth/register' =>
+            'Muitas tentativas. Aguarde 15 minutos e tente novamente.',
+          _ => 'Não foi possível concluir a solicitação. Tente novamente.',
+        }, code: 'http_${response.statusCode}');
       }
       if (response.statusCode == 204) return {};
       final data = jsonDecode(utf8.decode(response.bodyBytes));
@@ -190,10 +197,12 @@ class ApiClient {
       return data;
     } on TimeoutException {
       throw const AppException(
-          'O servidor demorou a responder. Tente novamente.');
+        'O servidor demorou a responder. Tente novamente.',
+      );
     } on http.ClientException {
       throw const AppException(
-          'Não foi possível conectar ao servidor. Verifique sua conexão.');
+        'Não foi possível conectar ao servidor. Verifique sua conexão.',
+      );
     } on FormatException {
       throw const AppException('Resposta inválida do servidor.');
     }

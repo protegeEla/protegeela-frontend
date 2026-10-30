@@ -64,75 +64,91 @@ final routerProvider = Provider<GoRouter>((ref) {
     },
     routes: [
       GoRoute(
-          path: '/buscar-apoio', builder: (_, __) => const PlacesSearchPage()),
+        path: '/buscar-apoio',
+        builder: (_, __) => const PlacesSearchPage(),
+      ),
       GoRoute(
         path: '/recurso-indisponivel',
         builder: (context, _) => Scaffold(
           appBar: AppBar(title: const Text('Funcionalidade indisponível')),
           body: Center(
-              child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Column(mainAxisSize: MainAxisSize.min, children: [
-              const Text(
-                  'Esta funcionalidade ainda não está disponível nesta versão. Cadastro, login e edição de perfil já estão disponíveis.'),
-              const SizedBox(height: 16),
-              FilledButton(
-                  onPressed: () => context.go('/home'),
-                  child: const Text('Voltar')),
-            ]),
-          )),
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text(
+                    'Esta funcionalidade ainda não está disponível nesta versão. Cadastro, login e edição de perfil já estão disponíveis.',
+                  ),
+                  const SizedBox(height: 16),
+                  FilledButton(
+                    onPressed: () => context.go('/home'),
+                    child: const Text('Voltar'),
+                  ),
+                ],
+              ),
+            ),
+          ),
         ),
       ),
       GoRoute(path: '/', builder: (_, __) => const SplashPage()),
       GoRoute(
-          path: '/apresentacao', builder: (_, __) => const OnboardingPage()),
+        path: '/apresentacao',
+        builder: (_, __) => const OnboardingPage(),
+      ),
       GoRoute(
-          path: '/privacidade', builder: (_, __) => const PrivacyIntroPage()),
+        path: '/privacidade',
+        builder: (_, __) => const PrivacyIntroPage(),
+      ),
       GoRoute(
         path: '/privacidade-conta',
         builder: (_, __) => const PrivacyIntroPage(inSettings: true),
       ),
       GoRoute(
-          path: '/localizacao', builder: (_, __) => const LocationIntroPage()),
+        path: '/localizacao',
+        builder: (_, __) => const LocationIntroPage(),
+      ),
       GoRoute(path: '/login', builder: (_, __) => const LoginPage()),
       GoRoute(
         path: '/convite/:token',
-        builder: (_, state) => ContactInvitationPage(
-          token: state.pathParameters['token']!,
-        ),
+        builder: (_, state) =>
+            ContactInvitationPage(token: state.pathParameters['token']!),
       ),
       GoRoute(
         path: '/trajeto/:token',
-        builder: (_, state) => SharedTripPage(
-          token: state.pathParameters['token']!,
-        ),
+        builder: (_, state) =>
+            SharedTripPage(token: state.pathParameters['token']!),
       ),
       GoRoute(
         path: '/cadastro',
-        builder: (_, __) => const LoginPage(
-          initialView: AuthenticationView.register,
-        ),
+        builder: (_, __) =>
+            const LoginPage(initialView: AuthenticationView.register),
       ),
       GoRoute(
-          path: '/recuperar-senha',
-          builder: (_, __) => const ResetPasswordPage()),
+        path: '/recuperar-senha',
+        builder: (_, __) => const ResetPasswordPage(),
+      ),
       GoRoute(
         path: '/atualizar-senha',
         builder: (_, __) => const UpdatePasswordPage(),
       ),
       GoRoute(
-          path: '/confirmar-email',
-          builder: (_, __) => const EmailConfirmationPage()),
+        path: '/confirmar-email',
+        builder: (_, __) => const EmailConfirmationPage(),
+      ),
       GoRoute(path: '/neutral', builder: (_, __) => const NeutralPage()),
       GoRoute(
-          path: '/criar-perfil', builder: (_, __) => const ProfileSetupPage()),
+        path: '/criar-perfil',
+        builder: (_, __) => const ProfileSetupPage(),
+      ),
       GoRoute(
         path: '/editar-perfil',
         builder: (_, __) => const ProfileSetupPage(editing: true),
       ),
       GoRoute(
-          path: '/primeiro-contato',
-          builder: (_, __) => const FirstContactPage()),
+        path: '/primeiro-contato',
+        builder: (_, __) => const FirstContactPage(),
+      ),
       ShellRoute(
         builder: (_, __, child) => ResponsiveShell(child: child),
         routes: [
@@ -158,16 +174,22 @@ final routerProvider = Provider<GoRouter>((ref) {
         ],
       ),
       GoRoute(
-          path: '/alerta-ativo', builder: (_, __) => const ActiveAlertPage()),
+        path: '/alerta-ativo',
+        builder: (_, __) => const ActiveAlertPage(),
+      ),
       GoRoute(path: '/apoio', redirect: (_, __) => '/mapa'),
       GoRoute(
-          path: '/denuncia-anonima',
-          builder: (_, __) => const AnonymousReportPage()),
+        path: '/denuncia-anonima',
+        builder: (_, __) => const AnonymousReportPage(),
+      ),
       GoRoute(
-          path: '/delegacia-da-mulher',
-          builder: (_, __) => const WomenPolicePage()),
+        path: '/delegacia-da-mulher',
+        builder: (_, __) => const WomenPolicePage(),
+      ),
       GoRoute(
-          path: '/orientacoes', builder: (_, __) => const SafetyContentPage()),
+        path: '/orientacoes',
+        builder: (_, __) => const SafetyContentPage(),
+      ),
       GoRoute(path: '/admin', builder: (_, __) => const AdminDashboardPage()),
     ],
   );
@@ -196,11 +218,11 @@ class GoRouterRefreshStream extends ChangeNotifier {
   GoRouterRefreshStream(Stream<dynamic> stream) {
     notifyListeners();
     _subscription = stream.asBroadcastStream().listen(
-          (_) => notifyListeners(),
-          // Auth refresh failures must not become unhandled asynchronous errors.
-          // The router reevaluates using the last session known by the SDK.
-          onError: (_, __) => notifyListeners(),
-        );
+      (_) => notifyListeners(),
+      // Auth refresh failures must not become unhandled asynchronous errors.
+      // The router reevaluates using the last session known by the SDK.
+      onError: (_, __) => notifyListeners(),
+    );
   }
 
   late final StreamSubscription<dynamic> _subscription;

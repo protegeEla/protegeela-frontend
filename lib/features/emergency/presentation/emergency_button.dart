@@ -17,8 +17,11 @@ class EmergencyButton extends StatefulWidget {
     this.enabled = true,
   });
 
-  final Future<void> Function(
-      {required bool isSilent, required bool publicVisibility}) onConfirmed;
+  final Future<void> Function({
+    required bool isSilent,
+    required bool publicVisibility,
+  })
+  onConfirmed;
   final bool enabled;
 
   @override
@@ -36,15 +39,14 @@ class _EmergencyButtonState extends State<EmergencyButton>
   @override
   void initState() {
     super.initState();
-    _holdController = AnimationController(
-      vsync: this,
-      animationBehavior: AnimationBehavior.preserve,
-      duration: const Duration(
-        seconds: AppConstants.emergencyHoldSeconds,
-      ),
-    )..addStatusListener((status) {
-        if (status == AnimationStatus.completed) _confirm();
-      });
+    _holdController =
+        AnimationController(
+          vsync: this,
+          animationBehavior: AnimationBehavior.preserve,
+          duration: const Duration(seconds: AppConstants.emergencyHoldSeconds),
+        )..addStatusListener((status) {
+          if (status == AnimationStatus.completed) _confirm();
+        });
     _pulseController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1700),
@@ -185,14 +187,17 @@ class _EmergencyButtonState extends State<EmergencyButton>
                       children: [
                         if (!_reduceMotion)
                           Positioned.fill(
-                              child: IgnorePointer(
-                                  child: CustomPaint(
-                            painter: HoldFeedback(_holdController),
-                          ))),
+                            child: IgnorePointer(
+                              child: CustomPaint(
+                                painter: HoldFeedback(_holdController),
+                              ),
+                            ),
+                          ),
                         AnimatedBuilder(
                           animation: _pulseController,
                           builder: (context, child) => Transform.scale(
-                            scale: 1 +
+                            scale:
+                                1 +
                                 (disabled ? 0 : _pulseController.value * 0.09),
                             child: child,
                           ),
@@ -202,8 +207,9 @@ class _EmergencyButtonState extends State<EmergencyButton>
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
                               border: Border.all(
-                                color:
-                                    AppColors.emergency.withValues(alpha: 0.07),
+                                color: AppColors.emergency.withValues(
+                                  alpha: 0.07,
+                                ),
                                 width: 12,
                               ),
                             ),
@@ -236,10 +242,10 @@ class _EmergencyButtonState extends State<EmergencyButton>
                           scale: _reduceMotion
                               ? 1
                               : (1 - (hold * 0.025)) +
-                                  (_hovered ? 0.012 : 0) +
-                                  (hold > 0
-                                      ? math.sin(hold * math.pi * 16) * 0.018
-                                      : 0),
+                                    (_hovered ? 0.012 : 0) +
+                                    (hold > 0
+                                        ? math.sin(hold * math.pi * 16) * 0.018
+                                        : 0),
                           child: AnimatedContainer(
                             duration: const Duration(milliseconds: 180),
                             curve: Curves.easeOutCubic,
@@ -277,33 +283,38 @@ class _EmergencyButtonState extends State<EmergencyButton>
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                   SizedBox(
-                                      height: 46,
-                                      child: AnimatedSwitcher(
-                                        duration: Duration(
-                                            milliseconds:
-                                                _reduceMotion ? 0 : 160),
-                                        transitionBuilder: (child, animation) =>
-                                            ScaleTransition(
-                                                scale: animation,
-                                                child: FadeTransition(
-                                                    opacity: animation,
-                                                    child: child)),
-                                        child: hold > 0 && !_busy
-                                            ? Text('$secondsLeft',
-                                                key: ValueKey(secondsLeft),
-                                                style: const TextStyle(
-                                                    color: Colors.white,
-                                                    fontSize: 40,
-                                                    height: 1,
-                                                    fontWeight:
-                                                        FontWeight.w900))
-                                            : const Icon(
-                                                Icons
-                                                    .volunteer_activism_rounded,
-                                                key: ValueKey('heart'),
+                                    height: 46,
+                                    child: AnimatedSwitcher(
+                                      duration: Duration(
+                                        milliseconds: _reduceMotion ? 0 : 160,
+                                      ),
+                                      transitionBuilder: (child, animation) =>
+                                          ScaleTransition(
+                                            scale: animation,
+                                            child: FadeTransition(
+                                              opacity: animation,
+                                              child: child,
+                                            ),
+                                          ),
+                                      child: hold > 0 && !_busy
+                                          ? Text(
+                                              '$secondsLeft',
+                                              key: ValueKey(secondsLeft),
+                                              style: const TextStyle(
                                                 color: Colors.white,
-                                                size: 41),
-                                      )),
+                                                fontSize: 40,
+                                                height: 1,
+                                                fontWeight: FontWeight.w900,
+                                              ),
+                                            )
+                                          : const Icon(
+                                              Icons.volunteer_activism_rounded,
+                                              key: ValueKey('heart'),
+                                              color: Colors.white,
+                                              size: 41,
+                                            ),
+                                    ),
+                                  ),
                                   const SizedBox(height: 7),
                                   Text(
                                     _busy ? 'ENVIANDO...' : 'PEDIR AJUDA',
@@ -316,18 +327,21 @@ class _EmergencyButtonState extends State<EmergencyButton>
                                   const SizedBox(height: 5),
                                   AnimatedSwitcher(
                                     duration: Duration(
-                                        milliseconds: _reduceMotion ? 0 : 140),
+                                      milliseconds: _reduceMotion ? 0 : 140,
+                                    ),
                                     child: Text(
                                       _busy
                                           ? 'Aguardando confirmação'
                                           : hold > 0
-                                              ? 'Continue segurando\nSolte para cancelar'
-                                              : 'Pressione e segure por ${AppConstants.emergencyHoldSeconds} segundos',
-                                      key: ValueKey(_busy
-                                          ? 'sending'
-                                          : hold > 0
-                                              ? 'holding'
-                                              : 'idle'),
+                                          ? 'Continue segurando\nSolte para cancelar'
+                                          : 'Pressione e segure por ${AppConstants.emergencyHoldSeconds} segundos',
+                                      key: ValueKey(
+                                        _busy
+                                            ? 'sending'
+                                            : hold > 0
+                                            ? 'holding'
+                                            : 'idle',
+                                      ),
                                       textAlign: TextAlign.center,
                                       style: const TextStyle(
                                         color: Colors.white,
@@ -369,9 +383,11 @@ class _EmergencyConfirmationDialogState
   int _remaining = AppConstants.confirmationSeconds;
   bool _shareOnMap = false;
 
-  void _send() => Navigator.of(context).pop(_shareOnMap
-      ? EmergencyConfirmationAction.shareOnMap
-      : EmergencyConfirmationAction.sendNow);
+  void _send() => Navigator.of(context).pop(
+    _shareOnMap
+        ? EmergencyConfirmationAction.shareOnMap
+        : EmergencyConfirmationAction.sendNow,
+  );
 
   @override
   void initState() {
@@ -401,19 +417,26 @@ class _EmergencyConfirmationDialogState
         size: 36,
       ),
       title: Text('Enviar alerta em $_remaining s'),
-      content: Column(mainAxisSize: MainAxisSize.min, children: [
-        const Text(
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Text(
             'O alerta será registrado no servidor ao terminar a contagem. Nenhum SMS, WhatsApp ou push será enviado aos contatos nesta versão.',
-            textAlign: TextAlign.center),
-        CheckboxListTile(
-          value: _shareOnMap,
-          onChanged: (value) => setState(() => _shareOnMap = value ?? false),
-          title: const Text('Mostrar região aproximada no mapa compartilhado'),
-          subtitle: const Text(
-              'Sem nome ou coordenadas exatas. O modo silencioso mantém o alerta privado.'),
-          contentPadding: EdgeInsets.zero,
-        ),
-      ]),
+            textAlign: TextAlign.center,
+          ),
+          CheckboxListTile(
+            value: _shareOnMap,
+            onChanged: (value) => setState(() => _shareOnMap = value ?? false),
+            title: const Text(
+              'Mostrar região aproximada no mapa compartilhado',
+            ),
+            subtitle: const Text(
+              'Sem nome ou coordenadas exatas. O modo silencioso mantém o alerta privado.',
+            ),
+            contentPadding: EdgeInsets.zero,
+          ),
+        ],
+      ),
       actionsAlignment: MainAxisAlignment.center,
       actions: [
         TextButton(
@@ -428,9 +451,7 @@ class _EmergencyConfirmationDialogState
         ),
         FilledButton(
           onPressed: _send,
-          style: FilledButton.styleFrom(
-            backgroundColor: AppColors.emergency,
-          ),
+          style: FilledButton.styleFrom(backgroundColor: AppColors.emergency),
           child: const Text('Enviar agora'),
         ),
       ],

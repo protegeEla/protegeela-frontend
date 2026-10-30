@@ -7,8 +7,9 @@ final alertsMapRepositoryProvider = Provider<AlertsMapRepository>((ref) {
   return AlertsMapRepository(ref.watch(apiClientProvider));
 });
 
-final publicAlertMarkersProvider =
-    FutureProvider<List<PublicAlertMarker>>((ref) async {
+final publicAlertMarkersProvider = FutureProvider<List<PublicAlertMarker>>((
+  ref,
+) async {
   final demoActive = await ref.watch(demoSessionProvider.future);
   if (demoActive) {
     return [
@@ -61,19 +62,22 @@ class AlertsMapRepository {
   const AlertsMapRepository(this._api);
   final ApiClient _api;
 
-  Future<List<PublicAlertMarker>> publicAlertsInBounds(
-      {required double south,
-      required double west,
-      required double north,
-      required double east}) async {
-    final query = Uri(queryParameters: {
-      'south': south.toString(),
-      'west': west.toString(),
-      'north': north.toString(),
-      'east': east.toString(),
-    }).query;
-    return (await _api.list('/alerts/map?$query'))
-        .map(PublicAlertMarker.fromJson)
-        .toList();
+  Future<List<PublicAlertMarker>> publicAlertsInBounds({
+    required double south,
+    required double west,
+    required double north,
+    required double east,
+  }) async {
+    final query = Uri(
+      queryParameters: {
+        'south': south.toString(),
+        'west': west.toString(),
+        'north': north.toString(),
+        'east': east.toString(),
+      },
+    ).query;
+    return (await _api.list(
+      '/alerts/map?$query',
+    )).map(PublicAlertMarker.fromJson).toList();
   }
 }

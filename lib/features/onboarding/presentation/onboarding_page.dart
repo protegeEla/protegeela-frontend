@@ -104,9 +104,9 @@ class _WelcomeContent extends StatelessWidget {
         children: [
           Text(
             'Bem-vinda ao\nProtegeEla!',
-            style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                  fontSize: desktop ? 46 : 36,
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.displaySmall?.copyWith(fontSize: desktop ? 46 : 36),
           ),
           const SizedBox(height: 14),
           const Text(

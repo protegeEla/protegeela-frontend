@@ -1,17 +1,23 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/services/api_client.dart';
+import '../../../core/services/auth_providers.dart';
 import '../../../core/services/location_service.dart';
 import '../../../shared/models/safety_check_in.dart';
 import '../../authentication/data/demo_session_repository.dart';
 
-final safetyCheckInRepositoryProvider =
-    Provider<SafetyCheckInRepository>((ref) {
+final safetyCheckInRepositoryProvider = Provider<SafetyCheckInRepository>((
+  ref,
+) {
+  ref.watch(apiSessionChangesProvider);
   return SafetyCheckInRepository(ref.watch(apiClientProvider));
 });
 
-final currentSafetyCheckInProvider =
-    FutureProvider<SafetyCheckIn?>((ref) async {
+final currentSafetyCheckInProvider = FutureProvider<SafetyCheckIn?>((
+  ref,
+) async {
+  final user = ref.watch(currentUserProvider);
+  if (user == null) return null;
   if (await ref.watch(demoSessionProvider.future)) return null;
   return ref.watch(safetyCheckInRepositoryProvider).current();
 });
@@ -36,12 +42,16 @@ class SafetyCheckInRepository {
     bool shareLocation = false,
     LocationCapture? location,
   }) async {
-    final data = await _api.request('POST', '/safety-checkins', body: {
-      'duration_minutes': durationMinutes,
-      'grace_minutes': graceMinutes,
-      'share_location': shareLocation,
-      if (location != null) 'location': location.toJson(),
-    });
+    final data = await _api.request(
+      'POST',
+      '/safety-checkins',
+      body: {
+        'duration_minutes': durationMinutes,
+        'grace_minutes': graceMinutes,
+        'share_location': shareLocation,
+        if (location != null) 'location': location.toJson(),
+      },
+    );
     final checkIn = SafetyCheckIn.fromJson(
       data['check_in'] as Map<String, dynamic>,
     );

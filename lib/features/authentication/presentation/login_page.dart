@@ -15,10 +15,7 @@ import 'widgets/login_illustration_panel.dart';
 enum AuthenticationView { login, register }
 
 class LoginPage extends ConsumerStatefulWidget {
-  const LoginPage({
-    super.key,
-    this.initialView = AuthenticationView.login,
-  });
+  const LoginPage({super.key, this.initialView = AuthenticationView.login});
 
   final AuthenticationView initialView;
 
@@ -61,7 +58,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       _error = null;
     });
     try {
-      await ref.read(authRepositoryProvider).signIn(
+      await ref
+          .read(authRepositoryProvider)
+          .signIn(
             email: _email.text,
             password: _password.text,
             rememberMe: _rememberMe,
@@ -95,7 +94,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       _error = null;
     });
     try {
-      await ref.read(authRepositoryProvider).signUp(
+      await ref
+          .read(authRepositoryProvider)
+          .signUp(
             name: _name.text,
             email: _email.text,
             phone: _phone.text,
@@ -168,9 +169,11 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                                   Expanded(
                                     flex: 9,
                                     child: Align(
-                                      child: _buildAuthCard(
-                                        context,
-                                        compact: false,
+                                      child: SingleChildScrollView(
+                                        child: _buildAuthCard(
+                                          context,
+                                          compact: false,
+                                        ),
                                       ),
                                     ),
                                   ),
@@ -196,10 +199,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                     vertical: verticalPadding,
                   );
                   if (desktop) {
-                    return Padding(
-                      padding: pagePadding,
-                      child: pageContent,
-                    );
+                    return Padding(padding: pagePadding, child: pageContent);
                   }
                   return SingleChildScrollView(
                     padding: pagePadding,
@@ -218,8 +218,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     final cardPadding = compact
         ? const EdgeInsets.all(24)
         : _registering
-            ? const EdgeInsets.symmetric(horizontal: 24, vertical: 18)
-            : const EdgeInsets.all(36);
+        ? const EdgeInsets.symmetric(horizontal: 24, vertical: 18)
+        : const EdgeInsets.all(36);
     return Container(
       width: double.infinity,
       constraints: const BoxConstraints(maxWidth: 600),
@@ -246,8 +246,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
               Text(
                 _registering ? 'Criar conta' : 'Entrar',
                 style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                      fontSize: compact ? 34 : (_registering ? 37 : 40),
-                    ),
+                  fontSize: compact ? 34 : (_registering ? 37 : 40),
+                ),
               ),
               const SizedBox(height: 5),
               Text(
@@ -359,9 +359,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
           hintText: '••••••••',
           prefixIcon: const Icon(Icons.lock_outline_rounded),
           suffixIcon: IconButton(
-            onPressed: () => setState(
-              () => _obscurePassword = !_obscurePassword,
-            ),
+            onPressed: () =>
+                setState(() => _obscurePassword = !_obscurePassword),
             tooltip: _obscurePassword ? 'Mostrar senha' : 'Ocultar senha',
             icon: Icon(
               _obscurePassword
@@ -402,15 +401,17 @@ class _LoginPageState extends ConsumerState<LoginPage> {
               ),
             ),
           ),
-          TextButton(
-            onPressed: null,
-            style: TextButton.styleFrom(
-              padding: EdgeInsets.zero,
-              minimumSize: const Size(0, 42),
-              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-              alignment: Alignment.centerRight,
+          Flexible(
+            child: TextButton(
+              onPressed: null,
+              style: TextButton.styleFrom(
+                padding: EdgeInsets.zero,
+                minimumSize: const Size(0, 42),
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                alignment: Alignment.centerRight,
+              ),
+              child: const Text('Esqueci minha senha'),
             ),
-            child: const Text('Esqueci minha senha'),
           ),
         ],
       ),
@@ -458,9 +459,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
         autofillHints: const [AutofillHints.newPassword],
         validator: Validators.password,
         suffixIcon: IconButton(
-          onPressed: () => setState(
-            () => _obscurePassword = !_obscurePassword,
-          ),
+          onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
           tooltip: _obscurePassword ? 'Mostrar senha' : 'Ocultar senha',
           padding: EdgeInsets.zero,
           visualDensity: VisualDensity.compact,
@@ -483,9 +482,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
         validator: (value) =>
             value == _password.text ? null : 'As senhas não conferem.',
         suffixIcon: IconButton(
-          onPressed: () => setState(
-            () => _obscureConfirmation = !_obscureConfirmation,
-          ),
+          onPressed: () =>
+              setState(() => _obscureConfirmation = !_obscureConfirmation),
           tooltip: _obscureConfirmation
               ? 'Mostrar confirmação'
               : 'Ocultar confirmação',

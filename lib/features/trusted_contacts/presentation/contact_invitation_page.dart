@@ -32,9 +32,11 @@ class _ContactInvitationPageState extends ConsumerState<ContactInvitationPage> {
       if (mounted) setState(() => _response = result);
     } catch (_) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text('Não foi possível responder ao convite.'),
-        ));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Não foi possível responder ao convite.'),
+          ),
+        );
       }
     } finally {
       if (mounted) setState(() => _busy = false);
@@ -60,9 +62,8 @@ class _ContactInvitationPageState extends ConsumerState<ContactInvitationPage> {
                     child: Padding(
                       padding: const EdgeInsets.all(28),
                       child: invitation.when(
-                        loading: () => const Center(
-                          child: CircularProgressIndicator(),
-                        ),
+                        loading: () =>
+                            const Center(child: CircularProgressIndicator()),
                         error: (_, __) => const AppStateView(
                           title: 'Convite indisponível',
                           message:
@@ -88,9 +89,9 @@ class _ContactInvitationPageState extends ConsumerState<ContactInvitationPage> {
                                   accepted
                                       ? 'Convite confirmado'
                                       : 'Convite recusado',
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .headlineMedium,
+                                  style: Theme.of(
+                                    context,
+                                  ).textTheme.headlineMedium,
                                   textAlign: TextAlign.center,
                                 ),
                                 const SizedBox(height: 10),
@@ -116,8 +117,9 @@ class _ContactInvitationPageState extends ConsumerState<ContactInvitationPage> {
                               const SizedBox(height: 16),
                               Text(
                                 'Convite para rede de apoio',
-                                style:
-                                    Theme.of(context).textTheme.headlineMedium,
+                                style: Theme.of(
+                                  context,
+                                ).textTheme.headlineMedium,
                                 textAlign: TextAlign.center,
                               ),
                               const SizedBox(height: 12),
@@ -144,15 +146,17 @@ class _ContactInvitationPageState extends ConsumerState<ContactInvitationPage> {
                               ),
                               const SizedBox(height: 24),
                               FilledButton.icon(
-                                onPressed:
-                                    _busy ? null : () => _respond('accepted'),
+                                onPressed: _busy
+                                    ? null
+                                    : () => _respond('accepted'),
                                 icon: const Icon(Icons.check_rounded),
                                 label: const Text('Aceitar convite'),
                               ),
                               const SizedBox(height: 9),
                               TextButton(
-                                onPressed:
-                                    _busy ? null : () => _respond('declined'),
+                                onPressed: _busy
+                                    ? null
+                                    : () => _respond('declined'),
                                 child: const Text('Recusar'),
                               ),
                               if (_busy) ...[

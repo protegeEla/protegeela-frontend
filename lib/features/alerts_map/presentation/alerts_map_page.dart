@@ -64,34 +64,43 @@ class _AlertsMapPageState extends ConsumerState<AlertsMapPage>
       final center = _mapController.camera.center;
       final response = await ref
           .read(apiClientProvider)
-          .request('POST', '/support-points/places/search', body: {
-        'category': 'all',
-        'latitude': center.latitude,
-        'longitude': center.longitude,
-        'radius': 10000,
-      });
+          .request(
+            'POST',
+            '/support-points/places/search',
+            body: {
+              'category': 'all',
+              'latitude': center.latitude,
+              'longitude': center.longitude,
+              'radius': 10000,
+            },
+          );
       final rows = response['items'];
       if (rows is! List) throw const FormatException();
       final places = rows
-          .map((row) =>
-              SupportPoint.fromJson(Map<String, dynamic>.from(row as Map)))
+          .map(
+            (row) =>
+                SupportPoint.fromJson(Map<String, dynamic>.from(row as Map)),
+          )
           .toList();
       if (mounted) setState(() => _osmPoints = places);
     } on AppException catch (error) {
       if (mounted) {
-        setState(() => _placesError = switch (error.code) {
-              'http_429' =>
-                'O serviço de locais está ocupado ou atingiu o limite temporário. Tente mais tarde.',
-              'http_502' ||
-              'http_504' =>
-                'O OpenStreetMap não respondeu a tempo. Clique em Tentar novamente.',
-              _ => error.message,
-            });
+        setState(
+          () => _placesError = switch (error.code) {
+            'http_429' =>
+              'O serviço de locais está ocupado ou atingiu o limite temporário. Tente mais tarde.',
+            'http_502' || 'http_504' =>
+              'O OpenStreetMap não respondeu a tempo. Clique em Tentar novamente.',
+            _ => error.message,
+          },
+        );
       }
     } catch (_) {
       if (mounted) {
-        setState(() => _placesError =
-            'Não foi possível consultar o OpenStreetMap. Tente buscar nesta região novamente.');
+        setState(
+          () => _placesError =
+              'Não foi possível consultar o OpenStreetMap. Tente buscar nesta região novamente.',
+        );
       }
     } finally {
       if (mounted) setState(() => _loadingPlaces = false);
@@ -119,8 +128,10 @@ class _AlertsMapPageState extends ConsumerState<AlertsMapPage>
   Future<void> _startRealtime() async {
     final demo = await ref.read(demoSessionProvider.future);
     if (!mounted || demo) return;
-    _realtime = AlertsRealtimeService(ref.read(apiClientProvider),
-        onChanged: _scheduleRefresh);
+    _realtime = AlertsRealtimeService(
+      ref.read(apiClientProvider),
+      onChanged: _scheduleRefresh,
+    );
     if (_foreground) _realtime!.start();
   }
 
@@ -166,12 +177,14 @@ class _AlertsMapPageState extends ConsumerState<AlertsMapPage>
       if (!mounted) return;
       final alerts = demoAlerts.isNotEmpty
           ? demoAlerts
-          : await ref.read(alertsMapRepositoryProvider).publicAlertsInBounds(
-                south: bounds.south.clamp(-90.0, 90.0),
-                west: bounds.west.clamp(-180.0, 180.0),
-                north: bounds.north.clamp(-90.0, 90.0),
-                east: bounds.east.clamp(-180.0, 180.0),
-              );
+          : await ref
+                .read(alertsMapRepositoryProvider)
+                .publicAlertsInBounds(
+                  south: bounds.south.clamp(-90.0, 90.0),
+                  west: bounds.west.clamp(-180.0, 180.0),
+                  north: bounds.north.clamp(-90.0, 90.0),
+                  east: bounds.east.clamp(-180.0, 180.0),
+                );
       if (!mounted) return;
       _alerts = alerts;
       _lastAlertSync = DateTime.now();
@@ -204,35 +217,39 @@ class _AlertsMapPageState extends ConsumerState<AlertsMapPage>
   Widget build(BuildContext context) {
     final config = ref.watch(appConfigProvider);
     final points = ref.watch(supportPointsProvider);
-    final items = [
-      ...(points.valueOrNull ?? const <SupportPoint>[]),
-      ..._osmPoints
-    ].where((point) {
-      final text =
-          '${point.name} ${point.address} ${point.city} ${supportCategoryLabel(point.category)}'
-              .toLowerCase();
-      return (_category == 'all' || point.category == _category) &&
-          text.contains(_query.trim().toLowerCase());
-    }).toList();
+    final items =
+        [
+          ...(points.valueOrNull ?? const <SupportPoint>[]),
+          ..._osmPoints,
+        ].where((point) {
+          final text =
+              '${point.name} ${point.address} ${point.city} ${supportCategoryLabel(point.category)}'
+                  .toLowerCase();
+          return (_category == 'all' || point.category == _category) &&
+              text.contains(_query.trim().toLowerCase());
+        }).toList();
     final center = LatLng(config.defaultLatitude, config.defaultLongitude);
     final results = (points.isLoading || _loadingPlaces) && items.isEmpty
         ? const Center(child: CircularProgressIndicator())
         : _placesError != null && items.isEmpty
-            ? AppStateView(
-                title: 'Falha ao buscar pontos de apoio',
-                message: _placesError!,
-                actionLabel: 'Tentar novamente',
-                onAction: _loadPlaces)
-            : points.hasError && items.isEmpty
-                ? AppStateView(
-                    title: 'Não foi possível carregar os locais',
-                    message: 'O mapa de alertas continua disponível.',
-                    actionLabel: 'Tentar novamente',
-                    onAction: () => ref.invalidate(supportPointsProvider))
-                : SupportResultsPanel(
-                    items: items,
-                    selectedId: _selectedId,
-                    onSelected: _selectPoint);
+        ? AppStateView(
+            title: 'Falha ao buscar pontos de apoio',
+            message: _placesError!,
+            actionLabel: 'Tentar novamente',
+            onAction: _loadPlaces,
+          )
+        : points.hasError && items.isEmpty
+        ? AppStateView(
+            title: 'Não foi possível carregar os locais',
+            message: 'O mapa de alertas continua disponível.',
+            actionLabel: 'Tentar novamente',
+            onAction: () => ref.invalidate(supportPointsProvider),
+          )
+        : SupportResultsPanel(
+            items: items,
+            selectedId: _selectedId,
+            onSelected: _selectPoint,
+          );
     final map = CommunityMap(
       controller: _mapController,
       center: center,
@@ -254,11 +271,12 @@ class _AlertsMapPageState extends ConsumerState<AlertsMapPage>
     );
     return Scaffold(
       body: SafeArea(
-        child: LayoutBuilder(builder: (context, constraints) {
-          final wide = constraints.maxWidth >= 980;
-          return Padding(
-            padding: EdgeInsets.all(wide ? 24 : 14),
-            child: Column(
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final wide = constraints.maxWidth >= 980;
+            return Padding(
+              padding: EdgeInsets.all(wide ? 24 : 14),
+              child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   const AppPageHeader(
@@ -286,89 +304,113 @@ class _AlertsMapPageState extends ConsumerState<AlertsMapPage>
                     ),
                   ),
                   const SizedBox(height: 10),
-                  Row(children: [
-                    Expanded(
+                  Row(
+                    children: [
+                      Expanded(
                         child: Text(
-                            _placesError ??
-                                'Pontos do OpenStreetMap em até 10 km do centro consultado. Cobertura colaborativa.',
-                            maxLines: 2)),
-                    TextButton.icon(
-                      onPressed: _loadingPlaces ? null : _loadPlaces,
-                      icon: const Icon(Icons.refresh),
-                      label: Text(_loadingPlaces
-                          ? 'Buscando...'
-                          : 'Buscar nesta região'),
-                    ),
-                  ]),
+                          _placesError ??
+                              'Pontos do OpenStreetMap em até 10 km do centro consultado. Cobertura colaborativa.',
+                          maxLines: 2,
+                        ),
+                      ),
+                      TextButton.icon(
+                        onPressed: _loadingPlaces ? null : _loadPlaces,
+                        icon: const Icon(Icons.refresh),
+                        label: Text(
+                          _loadingPlaces
+                              ? 'Buscando...'
+                              : 'Buscar nesta região',
+                        ),
+                      ),
+                    ],
+                  ),
                   SingleChildScrollView(
                     scrollDirection: Axis.horizontal,
-                    child: Row(children: [
-                      FilterChip(
-                        label: const Text('Alertas aproximados'),
-                        avatar: const Icon(Icons.radar_rounded,
-                            size: 18, color: AppColors.emergency),
-                        selected: _showAlerts,
-                        onSelected: (value) {
-                          setState(() => _showAlerts = value);
-                          _scheduleRefresh();
-                        },
-                      ),
-                      const SizedBox(width: 16),
-                      for (final category in const [
-                        'all',
-                        'support_center',
-                        'police_station',
-                        'health',
-                        'legal'
-                      ]) ...[
-                        ChoiceChip(
-                          label: Text(category == 'all'
-                              ? 'Todos os serviços'
-                              : supportCategoryLabel(category)),
-                          selected: _category == category,
-                          onSelected: (_) => setState(() {
-                            _category = category;
-                            _selectedId = null;
-                          }),
+                    child: Row(
+                      children: [
+                        FilterChip(
+                          label: const Text('Alertas aproximados'),
+                          avatar: const Icon(
+                            Icons.radar_rounded,
+                            size: 18,
+                            color: AppColors.emergency,
+                          ),
+                          selected: _showAlerts,
+                          onSelected: (value) {
+                            setState(() => _showAlerts = value);
+                            _scheduleRefresh();
+                          },
                         ),
-                        const SizedBox(width: 8),
+                        const SizedBox(width: 16),
+                        for (final category in const [
+                          'all',
+                          'support_center',
+                          'police_station',
+                          'health',
+                          'legal',
+                        ]) ...[
+                          ChoiceChip(
+                            label: Text(
+                              category == 'all'
+                                  ? 'Todos os serviços'
+                                  : supportCategoryLabel(category),
+                            ),
+                            selected: _category == category,
+                            onSelected: (_) => setState(() {
+                              _category = category;
+                              _selectedId = null;
+                            }),
+                          ),
+                          const SizedBox(width: 8),
+                        ],
                       ],
-                    ]),
+                    ),
                   ),
                   const SizedBox(height: 10),
-                  Row(children: [
-                    Expanded(
+                  Row(
+                    children: [
+                      Expanded(
                         child: Text(
-                      '${items.length} ${items.length == 1 ? 'ponto de apoio' : 'pontos de apoio'}',
-                      style: const TextStyle(
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.primary),
-                    )),
-                    if (!wide)
-                      TextButton.icon(
-                        onPressed: () =>
-                            setState(() => _mobileList = !_mobileList),
-                        icon: Icon(_mobileList
-                            ? Icons.map_outlined
-                            : Icons.view_list_outlined),
-                        label: Text(_mobileList ? 'Ver mapa' : 'Ver lista'),
+                          '${items.length} ${items.length == 1 ? 'ponto de apoio' : 'pontos de apoio'}',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.primary,
+                          ),
+                        ),
                       ),
-                  ]),
+                      if (!wide)
+                        TextButton.icon(
+                          onPressed: () =>
+                              setState(() => _mobileList = !_mobileList),
+                          icon: Icon(
+                            _mobileList
+                                ? Icons.map_outlined
+                                : Icons.view_list_outlined,
+                          ),
+                          label: Text(_mobileList ? 'Ver mapa' : 'Ver lista'),
+                        ),
+                    ],
+                  ),
                   const SizedBox(height: 10),
                   Expanded(
                     child: wide
-                        ? Row(children: [
-                            Expanded(child: map),
-                            const SizedBox(width: 18),
-                            SizedBox(width: 350, child: results),
-                          ])
+                        ? Row(
+                            children: [
+                              Expanded(child: map),
+                              const SizedBox(width: 18),
+                              SizedBox(width: 350, child: results),
+                            ],
+                          )
                         : IndexedStack(
                             index: _mobileList ? 1 : 0,
-                            children: [map, results]),
+                            children: [map, results],
+                          ),
                   ),
-                ]),
-          );
-        }),
+                ],
+              ),
+            );
+          },
+        ),
       ),
     );
   }

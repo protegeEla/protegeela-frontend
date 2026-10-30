@@ -40,9 +40,9 @@ class LoginIllustrationPanel extends StatelessWidget {
                       ],
                     ),
                     style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                          fontSize: 54,
-                          height: 1.02,
-                        ),
+                      fontSize: 54,
+                      height: 1.02,
+                    ),
                   ),
                   const SizedBox(height: 16),
                   Text(

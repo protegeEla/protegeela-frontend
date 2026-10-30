@@ -8,7 +8,9 @@ import '../../emergency/data/pending_alert_store.dart';
 
 final authRepositoryProvider = Provider<AuthRepository>((ref) {
   return AuthRepository(
-      ref.watch(apiClientProvider), ref.watch(pendingAlertStoreProvider));
+    ref.watch(apiClientProvider),
+    ref.watch(pendingAlertStoreProvider),
+  );
 });
 
 class AuthRepository {
@@ -27,13 +29,17 @@ class AuthRepository {
     required String phone,
     required String password,
   }) async {
-    final data = await _api
-        .request('POST', '/auth/register', authenticated: false, body: {
-      'name': name.trim(),
-      'email': email.trim(),
-      'phone': PhoneNumberFormatter.digitsOnly(phone),
-      'password': password,
-    });
+    final data = await _api.request(
+      'POST',
+      '/auth/register',
+      authenticated: false,
+      body: {
+        'name': name.trim(),
+        'email': email.trim(),
+        'phone': PhoneNumberFormatter.digitsOnly(phone),
+        'password': password,
+      },
+    );
     await _api.setSession(data, email, rememberMe: false);
   }
 
@@ -42,23 +48,29 @@ class AuthRepository {
     required String password,
     required bool rememberMe,
   }) async {
-    final data =
-        await _api.request('POST', '/auth/login', authenticated: false, body: {
-      'email': email.trim(),
-      'password': password,
-      'remember_me': rememberMe,
-    });
+    final data = await _api.request(
+      'POST',
+      '/auth/login',
+      authenticated: false,
+      body: {
+        'email': email.trim(),
+        'password': password,
+        'remember_me': rememberMe,
+      },
+    );
     await _api.setSession(data, email, rememberMe: rememberMe);
   }
 
   Future<void> resetPassword(String email) async {
     throw const AppException(
-        'Recuperação de senha ainda não está disponível na API Java.');
+      'Recuperação de senha ainda não está disponível na API Java.',
+    );
   }
 
   Future<void> updatePassword(String password) async {
     throw const AppException(
-        'Recuperação de senha ainda não está disponível na API Java.');
+      'Recuperação de senha ainda não está disponível na API Java.',
+    );
   }
 
   Future<void> signOut() async {

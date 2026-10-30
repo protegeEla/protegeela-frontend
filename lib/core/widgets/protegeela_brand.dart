@@ -55,10 +55,7 @@ class ProtegeElaBrand extends StatelessWidget {
                   'Mais segurança. Mais liberdade.',
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    color: AppColors.textMuted,
-                    fontSize: 11,
-                  ),
+                  style: TextStyle(color: AppColors.textMuted, fontSize: 11),
                 ),
             ],
           ),

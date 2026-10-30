@@ -3,8 +3,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 final safetyFavoritesProvider =
     StateNotifierProvider<SafetyFavoritesController, Set<String>>((ref) {
-  return SafetyFavoritesController()..load();
-});
+      return SafetyFavoritesController()..load();
+    });
 
 class SafetyFavoritesController extends StateNotifier<Set<String>> {
   SafetyFavoritesController() : super(<String>{});

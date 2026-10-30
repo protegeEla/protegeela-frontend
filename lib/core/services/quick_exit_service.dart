@@ -1,5 +1,6 @@
 import 'quick_exit_service_stub.dart'
-    if (dart.library.js_interop) 'quick_exit_service_web.dart' as platform;
+    if (dart.library.js_interop) 'quick_exit_service_web.dart'
+    as platform;
 
 /// Leaves sensitive content immediately.
 ///

@@ -10,7 +10,7 @@ void main() {
       .where((file) => file.path.endsWith('.dart'))
       .toList();
   final counts = {
-    for (final file in files) file: file.readAsLinesSync().length
+    for (final file in files) file: file.readAsLinesSync().length,
   };
   final ranked = counts.entries.toList()
     ..sort((a, b) => b.value.compareTo(a.value));
@@ -19,7 +19,8 @@ void main() {
   stdout.writeln('Largest Dart files (including blank lines):');
   for (final entry in ranked.take(12)) {
     stdout.writeln(
-        '${entry.value.toString().padLeft(4)}  ${relative(entry.key)}');
+      '${entry.value.toString().padLeft(4)}  ${relative(entry.key)}',
+    );
   }
   final oversized = counts.entries.where((entry) => entry.value > 800).toList();
   stdout.writeln('Files above 800 lines: ${oversized.length}');

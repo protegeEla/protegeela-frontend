@@ -31,8 +31,9 @@ class PrivacyIntroPage extends StatelessWidget {
                       Row(
                         children: [
                           AppBackButton(
-                            fallbackLocation:
-                                inSettings ? '/perfil' : '/apresentacao',
+                            fallbackLocation: inSettings
+                                ? '/perfil'
+                                : '/apresentacao',
                           ),
                           const SizedBox(width: 8),
                           const ProtegeElaBrand(compact: true),

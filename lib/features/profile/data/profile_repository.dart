@@ -43,15 +43,22 @@ class ProfileRepository {
     required String phone,
     String privacyMode = 'standard',
   }) async {
-    await _api.request('PUT', '/profile', body: {
-      'full_name': fullName.trim(),
-      'phone': PhoneNumberFormatter.digitsOnly(phone),
-      'privacy_mode': privacyMode,
-    });
+    await _api.request(
+      'PUT',
+      '/profile',
+      body: {
+        'full_name': fullName.trim(),
+        'phone': PhoneNumberFormatter.digitsOnly(phone),
+        'privacy_mode': privacyMode,
+      },
+    );
   }
 
   Future<void> updatePrivacyMode(String privacyMode) async {
-    await _api.request('PATCH', '/profile/privacy',
-        body: {'privacy_mode': privacyMode});
+    await _api.request(
+      'PATCH',
+      '/profile/privacy',
+      body: {'privacy_mode': privacyMode},
+    );
   }
 }

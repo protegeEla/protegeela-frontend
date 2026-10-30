@@ -60,38 +60,38 @@ class TrustedContact {
   }
 
   factory TrustedContact.fromJson(Map<String, dynamic> json) => TrustedContact(
-        id: json['id'] as String,
-        ownerUserId: json['owner_user_id'] as String,
-        contactUserId: json['contact_user_id'] as String?,
-        name: json['name'] as String? ?? '',
-        email: json['email'] as String?,
-        phone: json['phone'] as String? ?? '',
-        relationship: json['relationship'] as String? ?? 'outro',
-        invitationStatus: json['invitation_status'] as String? ?? 'pending',
-        canViewExactLocation: json['can_view_exact_location'] as bool? ?? false,
-        isPrimary: json['is_primary'] as bool? ?? false,
-        preferredChannel: json['preferred_channel'] as String? ?? 'whatsapp',
-        invitationSentAt: json['invitation_sent_at'] == null
-            ? null
-            : DateTime.tryParse(json['invitation_sent_at'] as String),
-        confirmedAt: json['confirmed_at'] == null
-            ? null
-            : DateTime.tryParse(json['confirmed_at'] as String),
-      );
+    id: json['id'] as String,
+    ownerUserId: json['owner_user_id'] as String,
+    contactUserId: json['contact_user_id'] as String?,
+    name: json['name'] as String? ?? '',
+    email: json['email'] as String?,
+    phone: json['phone'] as String? ?? '',
+    relationship: json['relationship'] as String? ?? 'outro',
+    invitationStatus: json['invitation_status'] as String? ?? 'pending',
+    canViewExactLocation: json['can_view_exact_location'] as bool? ?? false,
+    isPrimary: json['is_primary'] as bool? ?? false,
+    preferredChannel: json['preferred_channel'] as String? ?? 'whatsapp',
+    invitationSentAt: json['invitation_sent_at'] == null
+        ? null
+        : DateTime.tryParse(json['invitation_sent_at'] as String),
+    confirmedAt: json['confirmed_at'] == null
+        ? null
+        : DateTime.tryParse(json['confirmed_at'] as String),
+  );
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'owner_user_id': ownerUserId,
-        'contact_user_id': contactUserId,
-        'name': name,
-        'email': email,
-        'phone': phone,
-        'relationship': relationship,
-        'invitation_status': invitationStatus,
-        'can_view_exact_location': canViewExactLocation,
-        'is_primary': isPrimary,
-        'preferred_channel': preferredChannel,
-        'invitation_sent_at': invitationSentAt?.toIso8601String(),
-        'confirmed_at': confirmedAt?.toIso8601String(),
-      };
+    'id': id,
+    'owner_user_id': ownerUserId,
+    'contact_user_id': contactUserId,
+    'name': name,
+    'email': email,
+    'phone': phone,
+    'relationship': relationship,
+    'invitation_status': invitationStatus,
+    'can_view_exact_location': canViewExactLocation,
+    'is_primary': isPrimary,
+    'preferred_channel': preferredChannel,
+    'invitation_sent_at': invitationSentAt?.toIso8601String(),
+    'confirmed_at': confirmedAt?.toIso8601String(),
+  };
 }

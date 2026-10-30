@@ -3,19 +3,15 @@ import 'package:geolocator/geolocator.dart';
 
 import '../errors/app_exception.dart';
 
-final locationServiceProvider =
-    Provider<LocationService>((ref) => LocationService());
+final locationServiceProvider = Provider<LocationService>(
+  (ref) => LocationService(),
+);
 
 final locationReadinessProvider = FutureProvider.autoDispose<LocationReadiness>(
   (ref) => ref.watch(locationServiceProvider).readiness(),
 );
 
-enum LocationReadiness {
-  ready,
-  permissionRequired,
-  serviceDisabled,
-  blocked,
-}
+enum LocationReadiness { ready, permissionRequired, serviceDisabled, blocked }
 
 class LocationCapture {
   const LocationCapture({
@@ -35,13 +31,13 @@ class LocationCapture {
   final String source;
 
   Map<String, dynamic> toJson() => {
-        'latitude': latitude,
-        'longitude': longitude,
-        'accuracy': accuracy,
-        'altitude': altitude,
-        'captured_at': capturedAt.toIso8601String(),
-        'source': source,
-      };
+    'latitude': latitude,
+    'longitude': longitude,
+    'accuracy': accuracy,
+    'altitude': altitude,
+    'captured_at': capturedAt.toIso8601String(),
+    'source': source,
+  };
 }
 
 class LocationService {
@@ -66,8 +62,7 @@ class LocationService {
   LocationReadiness _readinessFromPermission(LocationPermission permission) {
     return switch (permission) {
       LocationPermission.always ||
-      LocationPermission.whileInUse =>
-        LocationReadiness.ready,
+      LocationPermission.whileInUse => LocationReadiness.ready,
       LocationPermission.deniedForever => LocationReadiness.blocked,
       _ => LocationReadiness.permissionRequired,
     };

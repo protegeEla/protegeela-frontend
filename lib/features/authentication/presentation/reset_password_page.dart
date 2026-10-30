@@ -84,10 +84,7 @@ class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage> {
                           children: [
                             AppBackButton(fallbackLocation: '/login'),
                             SizedBox(width: 10),
-                            ProtegeElaBrand(
-                              compact: true,
-                              showTagline: true,
-                            ),
+                            ProtegeElaBrand(compact: true, showTagline: true),
                           ],
                         ),
                         SizedBox(height: desktop ? 46 : 28),
@@ -169,11 +166,11 @@ class _RecoveryIntroduction extends StatelessWidget {
           Text(
             'Recupere seu\nacesso com segurança',
             style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                  color: AppColors.primaryDark,
-                  fontWeight: FontWeight.w900,
-                  height: 1.05,
-                  fontSize: compact ? 34 : 50,
-                ),
+              color: AppColors.primaryDark,
+              fontWeight: FontWeight.w900,
+              height: 1.05,
+              fontSize: compact ? 34 : 50,
+            ),
           ),
           const SizedBox(height: 16),
           const Text(
@@ -257,9 +254,9 @@ class _RecoveryCard extends StatelessWidget {
           Text(
             'Esqueceu sua senha?',
             style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                  color: AppColors.primaryDark,
-                  fontWeight: FontWeight.w900,
-                ),
+              color: AppColors.primaryDark,
+              fontWeight: FontWeight.w900,
+            ),
           ),
           const SizedBox(height: 8),
           const Text(
@@ -283,10 +280,7 @@ class _RecoveryCard extends StatelessWidget {
           ),
           if (error != null) ...[
             const SizedBox(height: 14),
-            Text(
-              error!,
-              style: const TextStyle(color: AppColors.emergency),
-            ),
+            Text(error!, style: const TextStyle(color: AppColors.emergency)),
           ],
           const SizedBox(height: 22),
           FilledButton.icon(
@@ -352,9 +346,9 @@ class _RecoveryCard extends StatelessWidget {
           'Confira seu e-mail',
           textAlign: TextAlign.center,
           style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                fontWeight: FontWeight.w900,
-                color: AppColors.primaryDark,
-              ),
+            fontWeight: FontWeight.w900,
+            color: AppColors.primaryDark,
+          ),
         ),
         const SizedBox(height: 10),
         Text(

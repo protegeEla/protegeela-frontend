@@ -22,14 +22,14 @@ class AlertLocation {
   final DateTime capturedAt;
 
   factory AlertLocation.fromJson(Map<String, dynamic> json) => AlertLocation(
-        id: json['id'] as String,
-        alertId: json['alert_id'] as String,
-        userId: json['user_id'] as String,
-        latitude: (json['latitude'] as num).toDouble(),
-        longitude: (json['longitude'] as num).toDouble(),
-        accuracy: (json['accuracy'] as num?)?.toDouble() ?? 0,
-        altitude: (json['altitude'] as num?)?.toDouble(),
-        source: json['source'] as String? ?? 'unknown',
-        capturedAt: DateTime.parse(json['captured_at'] as String),
-      );
+    id: json['id'] as String,
+    alertId: json['alert_id'] as String,
+    userId: json['user_id'] as String,
+    latitude: (json['latitude'] as num).toDouble(),
+    longitude: (json['longitude'] as num).toDouble(),
+    accuracy: (json['accuracy'] as num?)?.toDouble() ?? 0,
+    altitude: (json['altitude'] as num?)?.toDouble(),
+    source: json['source'] as String? ?? 'unknown',
+    capturedAt: DateTime.parse(json['captured_at'] as String),
+  );
 }

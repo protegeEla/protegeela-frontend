@@ -91,8 +91,10 @@ class AlertsRealtimeService {
         return;
       }
       channel.sink.add(frame);
-      _authTimeout =
-          Timer(const Duration(seconds: 8), () => _failed(generation));
+      _authTimeout = Timer(
+        const Duration(seconds: 8),
+        () => _failed(generation),
+      );
     } catch (_) {
       _failed(generation);
     }

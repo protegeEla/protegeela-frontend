@@ -64,9 +64,11 @@ class SafetyCheckInCard extends ConsumerWidget {
   Future<void> _start(BuildContext context, WidgetRef ref) async {
     if (await ref.read(demoSessionProvider.future)) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text('Entre em uma conta para iniciar um acompanhamento.'),
-        ));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Entre em uma conta para iniciar um acompanhamento.'),
+          ),
+        );
       }
       return;
     }
@@ -80,7 +82,9 @@ class SafetyCheckInCard extends ConsumerWidget {
       final location = setup.shareLocation
           ? await ref.read(locationServiceProvider).captureCurrent()
           : null;
-      final checkIn = await ref.read(safetyCheckInRepositoryProvider).start(
+      final checkIn = await ref
+          .read(safetyCheckInRepositoryProvider)
+          .start(
             durationMinutes: setup.minutes,
             shareLocation: setup.shareLocation,
             location: location,
@@ -100,15 +104,17 @@ class SafetyCheckInCard extends ConsumerWidget {
       }
     } on AppException catch (error) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(error.message)),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(error.message)));
       }
     } catch (_) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text('Não foi possível iniciar o acompanhamento.'),
-        ));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Não foi possível iniciar o acompanhamento.'),
+          ),
+        );
       }
     }
   }
@@ -119,7 +125,8 @@ class SafetyCheckInCard extends ConsumerWidget {
     SafetyCheckIn checkIn,
   ) async {
     try {
-      final url = checkIn.shareUrl ??
+      final url =
+          checkIn.shareUrl ??
           await ref
               .read(safetyCheckInRepositoryProvider)
               .createShareLink(checkIn.id);
@@ -127,9 +134,11 @@ class SafetyCheckInCard extends ConsumerWidget {
       if (context.mounted) await _showShareDialog(context, url);
     } catch (_) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text('Não foi possível criar o link do trajeto.'),
-        ));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Não foi possível criar o link do trajeto.'),
+          ),
+        );
       }
     }
   }
@@ -161,9 +170,9 @@ class SafetyCheckInCard extends ConsumerWidget {
             onPressed: () async {
               await Clipboard.setData(ClipboardData(text: url));
               if (context.mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Link copiado.')),
-                );
+                ScaffoldMessenger.of(
+                  context,
+                ).showSnackBar(const SnackBar(content: Text('Link copiado.')));
               }
             },
             icon: const Icon(Icons.copy_rounded),
@@ -196,17 +205,21 @@ class SafetyCheckInCard extends ConsumerWidget {
       }
       ref.invalidate(currentSafetyCheckInProvider);
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text(complete
-              ? 'Que bom que você chegou bem. Acompanhamento encerrado.'
-              : 'Acompanhamento cancelado.'),
-        ));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              complete
+                  ? 'Que bom que você chegou bem. Acompanhamento encerrado.'
+                  : 'Acompanhamento cancelado.',
+            ),
+          ),
+        );
       }
     } catch (_) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text('Não foi possível confirmar a ação.'),
-        ));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Não foi possível confirmar a ação.')),
+        );
       }
     }
   }
@@ -219,48 +232,48 @@ class _StartCheckInCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Card(
-        color: AppColors.surfaceSoft,
-        child: Padding(
-          padding: const EdgeInsets.all(22),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                width: 46,
-                height: 46,
-                decoration: const BoxDecoration(
-                  color: Colors.white,
-                  shape: BoxShape.circle,
-                ),
-                child:
-                    const Icon(Icons.route_rounded, color: AppColors.primary),
-              ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Cheguei bem',
-                        style: Theme.of(context).textTheme.titleLarge),
-                    const SizedBox(height: 5),
-                    const Text(
-                      'Defina quando pretende chegar. Se você não confirmar após a tolerância, um alerta será criado pelo servidor.',
-                      style:
-                          TextStyle(color: AppColors.textMuted, fontSize: 13),
-                    ),
-                    const SizedBox(height: 14),
-                    FilledButton.icon(
-                      onPressed: onStart,
-                      icon: const Icon(Icons.timer_outlined),
-                      label: const Text('Acompanhar trajeto'),
-                    ),
-                  ],
-                ),
-              ),
-            ],
+    color: AppColors.surfaceSoft,
+    child: Padding(
+      padding: const EdgeInsets.all(22),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 46,
+            height: 46,
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(Icons.route_rounded, color: AppColors.primary),
           ),
-        ),
-      );
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Cheguei bem',
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
+                const SizedBox(height: 5),
+                const Text(
+                  'Defina quando pretende chegar. Se você não confirmar após a tolerância, um alerta será criado pelo servidor.',
+                  style: TextStyle(color: AppColors.textMuted, fontSize: 13),
+                ),
+                const SizedBox(height: 14),
+                FilledButton.icon(
+                  onPressed: onStart,
+                  icon: const Icon(Icons.timer_outlined),
+                  label: const Text('Acompanhar trajeto'),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
 }
 
 class _ActiveCheckInCard extends StatefulWidget {
@@ -366,8 +379,8 @@ class _ActiveCheckInCardState extends State<_ActiveCheckInCard> {
               expired
                   ? 'O servidor está verificando o atraso e poderá criar um alerta.'
                   : inGrace
-                      ? 'Você está no período de tolerância de ${widget.checkIn.graceMinutes} minutos.'
-                      : 'Chegada prevista para ${DateFormat('HH:mm').format(widget.checkIn.expectedAt.toLocal())}.',
+                  ? 'Você está no período de tolerância de ${widget.checkIn.graceMinutes} minutos.'
+                  : 'Chegada prevista para ${DateFormat('HH:mm').format(widget.checkIn.expectedAt.toLocal())}.',
               style: const TextStyle(color: AppColors.textMuted),
             ),
             const SizedBox(height: 16),
@@ -397,8 +410,9 @@ class _ActiveCheckInCardState extends State<_ActiveCheckInCard> {
                 ),
                 FilledButton.icon(
                   onPressed: expired ? null : widget.onComplete,
-                  style:
-                      FilledButton.styleFrom(backgroundColor: AppColors.safe),
+                  style: FilledButton.styleFrom(
+                    backgroundColor: AppColors.safe,
+                  ),
                   icon: const Icon(Icons.check_circle_outline_rounded),
                   label: const Text('Cheguei bem'),
                 ),
@@ -424,56 +438,53 @@ class _DurationDialogState extends State<_DurationDialog> {
 
   @override
   Widget build(BuildContext context) => AlertDialog(
-        title: const Text('Quando você pretende chegar?'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+    title: const Text('Quando você pretende chegar?'),
+    content: Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const Text(
+          'Escolha o tempo do trajeto. Haverá mais 5 minutos de tolerância para confirmação.',
+        ),
+        const SizedBox(height: 18),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
           children: [
-            const Text(
-              'Escolha o tempo do trajeto. Haverá mais 5 minutos de tolerância para confirmação.',
-            ),
-            const SizedBox(height: 18),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                for (final option in const [15, 30, 60, 120])
-                  ChoiceChip(
-                    showCheckmark: false,
-                    selected: _minutes == option,
-                    onSelected: (_) => setState(() => _minutes = option),
-                    label:
-                        Text(option < 60 ? '$option min' : '${option ~/ 60} h'),
-                  ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            SwitchListTile.adaptive(
-              contentPadding: EdgeInsets.zero,
-              value: _shareLocation,
-              onChanged: (value) => setState(() => _shareLocation = value),
-              secondary: const Icon(Icons.location_on_outlined),
-              title: const Text('Compartilhar trajeto'),
-              subtitle: const Text(
-                'Sua rede de confiança poderá acompanhar sua localização por um link privado.',
+            for (final option in const [15, 30, 60, 120])
+              ChoiceChip(
+                showCheckmark: false,
+                selected: _minutes == option,
+                onSelected: (_) => setState(() => _minutes = option),
+                label: Text(option < 60 ? '$option min' : '${option ~/ 60} h'),
               ),
-            ),
           ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancelar'),
+        const SizedBox(height: 16),
+        SwitchListTile.adaptive(
+          contentPadding: EdgeInsets.zero,
+          value: _shareLocation,
+          onChanged: (value) => setState(() => _shareLocation = value),
+          secondary: const Icon(Icons.location_on_outlined),
+          title: const Text('Compartilhar trajeto'),
+          subtitle: const Text(
+            'Sua rede de confiança poderá acompanhar sua localização por um link privado.',
           ),
-          FilledButton(
-            onPressed: () => Navigator.pop(
-              context,
-              _CheckInSetup(_minutes, _shareLocation),
-            ),
-            child: const Text('Iniciar'),
-          ),
-        ],
-      );
+        ),
+      ],
+    ),
+    actions: [
+      TextButton(
+        onPressed: () => Navigator.pop(context),
+        child: const Text('Cancelar'),
+      ),
+      FilledButton(
+        onPressed: () =>
+            Navigator.pop(context, _CheckInSetup(_minutes, _shareLocation)),
+        child: const Text('Iniciar'),
+      ),
+    ],
+  );
 }
 
 class _CheckInSetup {
@@ -522,8 +533,8 @@ class _TrackingStatus extends StatelessWidget {
                   unavailable
                       ? 'Localização temporariamente indisponível'
                       : updating
-                          ? 'Atualizando localização...'
-                          : 'Trajeto compartilhado',
+                      ? 'Atualizando localização...'
+                      : 'Trajeto compartilhado',
                   style: const TextStyle(fontWeight: FontWeight.w800),
                 ),
                 if (lastLocationAt != null)

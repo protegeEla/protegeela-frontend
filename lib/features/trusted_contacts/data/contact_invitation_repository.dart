@@ -4,13 +4,13 @@ import '../../../core/services/api_client.dart';
 
 final contactInvitationRepositoryProvider =
     Provider<ContactInvitationRepository>((ref) {
-  return ContactInvitationRepository(ref.watch(apiClientProvider));
-});
+      return ContactInvitationRepository(ref.watch(apiClientProvider));
+    });
 
-final contactInvitationProvider =
-    FutureProvider.autoDispose.family<ContactInvitation, String>((ref, token) {
-  return ref.watch(contactInvitationRepositoryProvider).get(token);
-});
+final contactInvitationProvider = FutureProvider.autoDispose
+    .family<ContactInvitation, String>((ref, token) {
+      return ref.watch(contactInvitationRepositoryProvider).get(token);
+    });
 
 class ContactInvitation {
   const ContactInvitation({

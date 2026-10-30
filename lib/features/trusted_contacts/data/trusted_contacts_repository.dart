@@ -6,29 +6,31 @@ import '../../../core/utils/phone_number_formatter.dart';
 import '../../../shared/models/trusted_contact.dart';
 import '../../authentication/data/demo_session_repository.dart';
 
-final trustedContactsRepositoryProvider =
-    Provider<TrustedContactsRepository>((ref) {
+final trustedContactsRepositoryProvider = Provider<TrustedContactsRepository>((
+  ref,
+) {
   return TrustedContactsRepository(ref.watch(apiClientProvider));
 });
 
 final demoTrustedContactsProvider =
     StateProvider.autoDispose<List<TrustedContact>>(
-  (ref) => const [
-    TrustedContact(
-      id: 'demo-contact',
-      ownerUserId: 'demo-user',
-      name: 'Contato demonstrativo',
-      phone: '(00) 00000-0000',
-      relationship: 'demo',
-      invitationStatus: 'accepted',
-      canViewExactLocation: true,
-      isPrimary: true,
-    ),
-  ],
-);
+      (ref) => const [
+        TrustedContact(
+          id: 'demo-contact',
+          ownerUserId: 'demo-user',
+          name: 'Contato demonstrativo',
+          phone: '(00) 00000-0000',
+          relationship: 'demo',
+          invitationStatus: 'accepted',
+          canViewExactLocation: true,
+          isPrimary: true,
+        ),
+      ],
+    );
 
-final trustedContactsProvider =
-    FutureProvider<List<TrustedContact>>((ref) async {
+final trustedContactsProvider = FutureProvider<List<TrustedContact>>((
+  ref,
+) async {
   ref.watch(currentUserProvider.select((user) => user?.id));
   final demoActive = await ref.watch(demoSessionProvider.future);
   if (demoActive) {
@@ -44,47 +46,62 @@ class TrustedContactsRepository {
   Future<List<TrustedContact>> listMine() async =>
       (await _api.list('/contacts')).map(TrustedContact.fromJson).toList();
 
-  Future<void> addContact(
-      {required String name,
-      required String phone,
-      String? email,
-      required String relationship,
-      required String preferredChannel,
-      required bool canViewExactLocation}) async {
-    await _api.request('POST', '/contacts', body: {
-      'name': name.trim(),
-      'phone': PhoneNumberFormatter.digitsOnly(phone),
-      'email': _email(email),
-      'relationship': relationship,
-      'preferred_channel': preferredChannel,
-      'can_view_exact_location': canViewExactLocation,
-    });
+  Future<void> addContact({
+    required String name,
+    required String phone,
+    String? email,
+    required String relationship,
+    required String preferredChannel,
+    required bool canViewExactLocation,
+  }) async {
+    await _api.request(
+      'POST',
+      '/contacts',
+      body: {
+        'name': name.trim(),
+        'phone': PhoneNumberFormatter.digitsOnly(phone),
+        'email': _email(email),
+        'relationship': relationship,
+        'preferred_channel': preferredChannel,
+        'can_view_exact_location': canViewExactLocation,
+      },
+    );
   }
 
   Future<void> remove(String id) async {
     await _api.request('DELETE', '/contacts/$id');
   }
 
-  Future<void> updateContact(
-      {required String id,
-      required String name,
-      required String phone,
-      String? email,
-      required String relationship,
-      required String preferredChannel}) async {
-    await _api.request('PUT', '/contacts/$id', body: {
-      'name': name.trim(),
-      'phone': PhoneNumberFormatter.digitsOnly(phone),
-      'email': _email(email),
-      'relationship': relationship,
-      'preferred_channel': preferredChannel,
-    });
+  Future<void> updateContact({
+    required String id,
+    required String name,
+    required String phone,
+    String? email,
+    required String relationship,
+    required String preferredChannel,
+  }) async {
+    await _api.request(
+      'PUT',
+      '/contacts/$id',
+      body: {
+        'name': name.trim(),
+        'phone': PhoneNumberFormatter.digitsOnly(phone),
+        'email': _email(email),
+        'relationship': relationship,
+        'preferred_channel': preferredChannel,
+      },
+    );
   }
 
-  Future<void> updateLocationPermission(
-      {required String id, required bool canViewExactLocation}) async {
-    await _api.request('PATCH', '/contacts/$id/location-permission',
-        body: {'can_view_exact_location': canViewExactLocation});
+  Future<void> updateLocationPermission({
+    required String id,
+    required bool canViewExactLocation,
+  }) async {
+    await _api.request(
+      'PATCH',
+      '/contacts/$id/location-permission',
+      body: {'can_view_exact_location': canViewExactLocation},
+    );
   }
 
   Future<ContactInvitationShare> createInvitation(String id) async {

@@ -4,8 +4,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../shared/models/support_point.dart';
 import '../../authentication/data/demo_session_repository.dart';
 
-final supportPointsRepositoryProvider =
-    Provider<SupportPointsRepository>((ref) {
+final supportPointsRepositoryProvider = Provider<SupportPointsRepository>((
+  ref,
+) {
   return SupportPointsRepository(ref.watch(apiClientProvider));
 });
 

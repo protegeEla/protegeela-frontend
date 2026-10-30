@@ -10,8 +10,9 @@ import '../data/safety_check_in_repository.dart';
 
 enum CheckInTrackingStatus { idle, updating, active, unavailable }
 
-final checkInTrackingStatusProvider =
-    StateProvider<CheckInTrackingStatus>((ref) => CheckInTrackingStatus.idle);
+final checkInTrackingStatusProvider = StateProvider<CheckInTrackingStatus>(
+  (ref) => CheckInTrackingStatus.idle,
+);
 
 class CheckInLocationTracker extends ConsumerStatefulWidget {
   const CheckInLocationTracker({super.key, required this.child});
@@ -42,7 +43,7 @@ class _CheckInLocationTrackerState extends ConsumerState<CheckInLocationTracker>
       if (!mounted) return;
       setState(() => _authenticated = api.isAuthenticated);
       ref.invalidate(currentSafetyCheckInProvider);
-      if (!api.isAuthenticated) _configure(null);
+      _configure(null);
     });
   }
 
@@ -98,6 +99,8 @@ class _CheckInLocationTrackerState extends ConsumerState<CheckInLocationTracker>
 
   Future<void> _capture() async {
     final checkIn = _tracked;
+    final api = ref.read(apiClientProvider);
+    final sessionVersion = api.sessionVersion;
     if (!_foreground || _capturing || checkIn == null) return;
     if (DateTime.now().isAfter(checkIn.expiresAt.toLocal())) {
       _configure(null);
@@ -109,6 +112,15 @@ class _CheckInLocationTrackerState extends ConsumerState<CheckInLocationTracker>
         CheckInTrackingStatus.updating;
     try {
       final location = await ref.read(locationServiceProvider).captureCurrent();
+      // A permission prompt can outlive logout, account changes or cancellation.
+      if (!mounted ||
+          !api.isAuthenticated ||
+          api.sessionVersion != sessionVersion ||
+          _tracked?.id != checkIn.id ||
+          _tracked?.shareLocation != true ||
+          !_foreground) {
+        return;
+      }
       await ref.read(safetyCheckInRepositoryProvider).updateLocation(location);
       if (!mounted || _tracked?.id != checkIn.id) return;
       ref.read(checkInTrackingStatusProvider.notifier).state =

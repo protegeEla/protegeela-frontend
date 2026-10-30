@@ -60,8 +60,11 @@ class SharedTrip {
           ? null
           : DateTime.parse(trip['last_location_at'] as String),
       locations: locations
-          .map((item) => SharedTripLocation.fromJson(
-              Map<String, dynamic>.from(item as Map)))
+          .map(
+            (item) => SharedTripLocation.fromJson(
+              Map<String, dynamic>.from(item as Map),
+            ),
+          )
           .toList(growable: false),
     );
   }

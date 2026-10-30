@@ -49,16 +49,16 @@ class TrustedContactsPage extends ConsumerWidget {
                         action: FilledButton.icon(
                           onPressed: () => _addContact(context, ref),
                           icon: const Icon(Icons.add_rounded),
-                          label:
-                              Text(desktop ? 'Adicionar contato' : 'Adicionar'),
+                          label: Text(
+                            desktop ? 'Adicionar contato' : 'Adicionar',
+                          ),
                         ),
                       ),
                       const SizedBox(height: 22),
                       Expanded(
                         child: contacts.when(
-                          loading: () => const Center(
-                            child: CircularProgressIndicator(),
-                          ),
+                          loading: () =>
+                              const Center(child: CircularProgressIndicator()),
                           error: (_, __) => AppStateView(
                             title: 'Erro',
                             message: 'Não foi possível carregar contatos.',
@@ -168,7 +168,9 @@ class TrustedContactsPage extends ConsumerWidget {
       context,
       ref,
       successMessage: 'Contato salvo. Nenhum convite foi enviado.',
-      mutation: () => ref.read(trustedContactsRepositoryProvider).addContact(
+      mutation: () => ref
+          .read(trustedContactsRepositoryProvider)
+          .addContact(
             name: value.name,
             phone: value.phone,
             email: value.email,
@@ -214,7 +216,9 @@ class TrustedContactsPage extends ConsumerWidget {
       context,
       ref,
       successMessage: 'Contato atualizado com sucesso.',
-      mutation: () => ref.read(trustedContactsRepositoryProvider).updateContact(
+      mutation: () => ref
+          .read(trustedContactsRepositoryProvider)
+          .updateContact(
             id: contact.id,
             name: value.name,
             phone: value.phone,
@@ -230,10 +234,7 @@ class TrustedContactsPage extends ConsumerWidget {
     WidgetRef ref,
     TrustedContact contact,
   ) async {
-    final permission = await showContactAccessDialog(
-      context,
-      contact: contact,
-    );
+    final permission = await showContactAccessDialog(context, contact: contact);
     if (permission == null || !context.mounted) return;
 
     final demoActive = await ref.read(demoSessionProvider.future);
@@ -256,11 +257,12 @@ class TrustedContactsPage extends ConsumerWidget {
       context,
       ref,
       successMessage: 'Permissão de localização atualizada.',
-      mutation: () =>
-          ref.read(trustedContactsRepositoryProvider).updateLocationPermission(
-                id: contact.id,
-                canViewExactLocation: permission,
-              ),
+      mutation: () => ref
+          .read(trustedContactsRepositoryProvider)
+          .updateLocationPermission(
+            id: contact.id,
+            canViewExactLocation: permission,
+          ),
     );
   }
 
@@ -298,8 +300,11 @@ class TrustedContactsPage extends ConsumerWidget {
       }
     } catch (_) {
       if (context.mounted) {
-        _showMessage(context, 'Não foi possível preparar o convite.',
-            error: true);
+        _showMessage(
+          context,
+          'Não foi possível preparar o convite.',
+          error: true,
+        );
       }
     }
   }
@@ -314,7 +319,9 @@ class TrustedContactsPage extends ConsumerWidget {
     if (!context.mounted) return;
     if (opened) {
       _showMessage(
-          context, 'Canal aberto. Envie a mensagem para concluir o teste.');
+        context,
+        'Canal aberto. Envie a mensagem para concluir o teste.',
+      );
     } else {
       await Clipboard.setData(const ClipboardData(text: message));
       if (context.mounted) {
@@ -327,18 +334,22 @@ class TrustedContactsPage extends ConsumerWidget {
     final phone = PhoneNumberFormatter.digitsOnly(contact.phone);
     final internationalPhone = phone.startsWith('55') ? phone : '55$phone';
     final Uri? uri = switch (contact.preferredChannel) {
-      'whatsapp' =>
-        Uri.https('wa.me', '/$internationalPhone', {'text': message}),
-      'sms' =>
-        Uri(scheme: 'sms', path: phone, queryParameters: {'body': message}),
+      'whatsapp' => Uri.https('wa.me', '/$internationalPhone', {
+        'text': message,
+      }),
+      'sms' => Uri(
+        scheme: 'sms',
+        path: phone,
+        queryParameters: {'body': message},
+      ),
       'email' when contact.email != null => Uri(
-          scheme: 'mailto',
-          path: contact.email,
-          queryParameters: {
-            'subject': 'Rede de apoio ProtegeEla',
-            'body': message,
-          },
-        ),
+        scheme: 'mailto',
+        path: contact.email,
+        queryParameters: {
+          'subject': 'Rede de apoio ProtegeEla',
+          'body': message,
+        },
+      ),
       'call' => Uri(scheme: 'tel', path: phone),
       _ => null,
     };
@@ -350,10 +361,7 @@ class TrustedContactsPage extends ConsumerWidget {
     WidgetRef ref,
     TrustedContact contact,
   ) async {
-    final confirmed = await showRemoveContactDialog(
-      context,
-      contact: contact,
-    );
+    final confirmed = await showRemoveContactDialog(context, contact: contact);
     if (!confirmed || !context.mounted) return;
 
     final demoActive = await ref.read(demoSessionProvider.future);
@@ -532,40 +540,40 @@ class _ContactCard extends StatelessWidget {
   }
 
   String _statusLabel(String value) => switch (value) {
-        'accepted' => 'Ativo',
-        'declined' => 'Recusado',
-        'pending' => 'Pendente',
-        'expired' => 'Expirado',
-        _ => 'Não convidado',
-      };
+    'accepted' => 'Ativo',
+    'declined' => 'Recusado',
+    'pending' => 'Pendente',
+    'expired' => 'Expirado',
+    _ => 'Não convidado',
+  };
 
   IconData _statusIcon(String value) => switch (value) {
-        'accepted' => Icons.check_rounded,
-        'declined' => Icons.close_rounded,
-        'expired' => Icons.timer_off_outlined,
-        _ => Icons.schedule_rounded,
-      };
+    'accepted' => Icons.check_rounded,
+    'declined' => Icons.close_rounded,
+    'expired' => Icons.timer_off_outlined,
+    _ => Icons.schedule_rounded,
+  };
 
   Color _statusColor(String value) => switch (value) {
-        'accepted' => AppColors.safe,
-        'declined' => AppColors.emergency,
-        'pending' => AppColors.warning,
-        _ => AppColors.textMuted,
-      };
+    'accepted' => AppColors.safe,
+    'declined' => AppColors.emergency,
+    'pending' => AppColors.warning,
+    _ => AppColors.textMuted,
+  };
 
   String _channelLabel(String value) => switch (value) {
-        'sms' => 'SMS',
-        'email' => 'E-mail',
-        'call' => 'Ligação',
-        _ => 'WhatsApp',
-      };
+    'sms' => 'SMS',
+    'email' => 'E-mail',
+    'call' => 'Ligação',
+    _ => 'WhatsApp',
+  };
 
   IconData _channelIcon(String value) => switch (value) {
-        'sms' => Icons.sms_outlined,
-        'email' => Icons.mail_outline_rounded,
-        'call' => Icons.phone_outlined,
-        _ => Icons.chat_outlined,
-      };
+    'sms' => Icons.sms_outlined,
+    'email' => Icons.mail_outline_rounded,
+    'call' => Icons.phone_outlined,
+    _ => Icons.chat_outlined,
+  };
 }
 
 class _ContactMenuButton extends StatelessWidget {
@@ -657,10 +665,7 @@ class _ContactMenuButton extends StatelessWidget {
           borderRadius: BorderRadius.circular(12),
         ),
         alignment: Alignment.center,
-        child: const Icon(
-          Icons.more_horiz_rounded,
-          color: AppColors.primary,
-        ),
+        child: const Icon(Icons.more_horiz_rounded, color: AppColors.primary),
       ),
     );
   }
