@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../app/theme.dart';
 import '../../../core/utils/validators.dart';
+import '../../../core/utils/phone_number_formatter.dart';
 import '../../../core/widgets/app_back_button.dart';
 import '../../../core/widgets/protegeela_brand.dart';
 import '../../authentication/data/auth_repository.dart';
@@ -46,7 +47,7 @@ class _ProfileSetupPageState extends ConsumerState<ProfileSetupPage> {
       final userEmail = ref.read(authRepositoryProvider).currentUser?.email;
       if (!mounted) return;
       _name.text = profile?.fullName ?? '';
-      _phone.text = profile?.phone ?? '';
+      _phone.text = PhoneNumberFormatter.format(profile?.phone ?? '');
       setState(() {
         _isDemo = demoActive || profile?.id == 'demo-user';
         _email = demoActive ? 'demonstracao@protegeela.app' : userEmail;
@@ -130,23 +131,20 @@ class _ProfileSetupPageState extends ConsumerState<ProfileSetupPage> {
             ? const Center(child: CircularProgressIndicator())
             : Center(
                 child: SingleChildScrollView(
-                  physics: compactLayout
-                      ? const NeverScrollableScrollPhysics()
-                      : null,
                   padding: EdgeInsets.fromLTRB(
                     20,
-                    compactLayout ? 8 : 20,
+                    compactLayout ? 16 : 24,
                     20,
-                    compactLayout ? 12 : 36,
+                    compactLayout ? 24 : 40,
                   ),
                   child: ConstrainedBox(
                     constraints: const BoxConstraints(maxWidth: 600),
                     child: Column(
                       children: [
                         const ProtegeElaBrand(compact: true),
-                        SizedBox(height: compactLayout ? 10 : 24),
+                        SizedBox(height: compactLayout ? 20 : 28),
                         Container(
-                          padding: EdgeInsets.all(compactLayout ? 22 : 30),
+                          padding: EdgeInsets.all(compactLayout ? 30 : 34),
                           decoration: BoxDecoration(
                             color: Colors.white,
                             borderRadius: BorderRadius.circular(22),
@@ -217,7 +215,7 @@ class _ProfileSetupPageState extends ConsumerState<ProfileSetupPage> {
                                       ],
                                     ),
                                   ),
-                                  SizedBox(height: compactLayout ? 10 : 20),
+                                  SizedBox(height: compactLayout ? 22 : 26),
                                 ],
                                 Text(
                                   widget.editing
@@ -227,7 +225,7 @@ class _ProfileSetupPageState extends ConsumerState<ProfileSetupPage> {
                                       .textTheme
                                       .headlineMedium,
                                 ),
-                                const SizedBox(height: 6),
+                                const SizedBox(height: 12),
                                 Text(
                                   widget.editing
                                       ? 'Mantenha suas informações atualizadas para sua segurança.'
@@ -266,7 +264,7 @@ class _ProfileSetupPageState extends ConsumerState<ProfileSetupPage> {
                                     ),
                                   ),
                                 ],
-                                SizedBox(height: compactLayout ? 14 : 26),
+                                SizedBox(height: compactLayout ? 28 : 32),
                                 TextFormField(
                                   controller: _name,
                                   textInputAction: TextInputAction.next,
@@ -280,10 +278,13 @@ class _ProfileSetupPageState extends ConsumerState<ProfileSetupPage> {
                                   validator: (value) =>
                                       Validators.required(value, field: 'Nome'),
                                 ),
-                                SizedBox(height: compactLayout ? 9 : 14),
+                                SizedBox(height: compactLayout ? 24 : 26),
                                 TextFormField(
                                   controller: _phone,
                                   keyboardType: TextInputType.phone,
+                                  inputFormatters: const [
+                                    BrazilianPhoneInputFormatter()
+                                  ],
                                   textInputAction: TextInputAction.done,
                                   decoration: const InputDecoration(
                                     labelText: 'Telefone',
@@ -293,7 +294,7 @@ class _ProfileSetupPageState extends ConsumerState<ProfileSetupPage> {
                                   validator: Validators.phone,
                                 ),
                                 if (widget.editing && _email != null) ...[
-                                  SizedBox(height: compactLayout ? 9 : 14),
+                                  SizedBox(height: compactLayout ? 24 : 26),
                                   TextFormField(
                                     initialValue: _email,
                                     readOnly: true,
@@ -309,13 +310,13 @@ class _ProfileSetupPageState extends ConsumerState<ProfileSetupPage> {
                                     ),
                                   ),
                                 ],
-                                SizedBox(height: compactLayout ? 11 : 18),
+                                SizedBox(height: compactLayout ? 28 : 30),
                                 Container(
                                   padding: EdgeInsets.fromLTRB(
                                     16,
-                                    compactLayout ? 6 : 10,
+                                    compactLayout ? 14 : 16,
                                     8,
-                                    compactLayout ? 6 : 10,
+                                    compactLayout ? 14 : 16,
                                   ),
                                   decoration: BoxDecoration(
                                     color: AppColors.surfaceSoft,
@@ -366,7 +367,7 @@ class _ProfileSetupPageState extends ConsumerState<ProfileSetupPage> {
                                     ),
                                   ),
                                 ],
-                                SizedBox(height: compactLayout ? 13 : 24),
+                                SizedBox(height: compactLayout ? 28 : 32),
                                 FilledButton.icon(
                                   onPressed: _loading ? null : _submit,
                                   iconAlignment: IconAlignment.end,

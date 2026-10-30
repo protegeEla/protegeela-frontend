@@ -1,12 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
-import '../../../core/errors/app_exception.dart';
-import '../../../core/services/supabase_providers.dart';
+import '../../../core/services/api_client.dart';
 import '../../authentication/data/demo_session_repository.dart';
 
 final alertsMapRepositoryProvider = Provider<AlertsMapRepository>((ref) {
-  return AlertsMapRepository(ref.watch(supabaseClientProvider));
+  return AlertsMapRepository(ref.watch(apiClientProvider));
 });
 
 final publicAlertMarkersProvider =
@@ -60,36 +58,22 @@ class PublicAlertMarker {
 }
 
 class AlertsMapRepository {
-  const AlertsMapRepository(this._client);
+  const AlertsMapRepository(this._api);
+  final ApiClient _api;
 
-  final SupabaseClient _client;
-
-  Future<List<PublicAlertMarker>> publicAlertsInBounds({
-    required double south,
-    required double west,
-    required double north,
-    required double east,
-  }) async {
-    final response = await _client.functions.invoke(
-      'get-public-alerts-in-bounds',
-      body: {
-        'south': south,
-        'west': west,
-        'north': north,
-        'east': east,
-        'limit': 100
-      },
-    );
-    final data = response.data;
-    if (data is! List<dynamic>) {
-      throw const AppException(
-        'Resposta inválida ao carregar alertas.',
-        code: 'invalid_server_response',
-      );
-    }
-    return [
-      for (final item in data)
-        if (item is Map<String, dynamic>) PublicAlertMarker.fromJson(item),
-    ];
+  Future<List<PublicAlertMarker>> publicAlertsInBounds(
+      {required double south,
+      required double west,
+      required double north,
+      required double east}) async {
+    final query = Uri(queryParameters: {
+      'south': south.toString(),
+      'west': west.toString(),
+      'north': north.toString(),
+      'east': east.toString(),
+    }).query;
+    return (await _api.list('/alerts/map?$query'))
+        .map(PublicAlertMarker.fromJson)
+        .toList();
   }
 }

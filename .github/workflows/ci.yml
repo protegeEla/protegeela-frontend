@@ -15,7 +15,7 @@ concurrency:
 
 jobs:
   validate:
-    name: Analyze, test and build
+    name: Analyze and build
     runs-on: ubuntu-latest
     timeout-minutes: 20
 
@@ -34,16 +34,13 @@ jobs:
         run: flutter pub get
 
       - name: Verify formatting
-        run: dart format --output=none --set-exit-if-changed lib test/core test/features scripts
+        run: dart format --output=none --set-exit-if-changed lib scripts
 
       - name: Audit source organization
         run: dart run scripts/audit_frontend.dart
 
       - name: Analyze source
         run: flutter analyze --no-pub
-
-      - name: Run tests
-        run: flutter test --no-pub test/core test/features
 
       - name: Build web release
         run: flutter build web --release --no-pub

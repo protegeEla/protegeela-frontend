@@ -1,13 +1,12 @@
+import '../../../core/services/api_client.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
-import '../../../core/services/supabase_providers.dart';
 import '../../../shared/models/support_point.dart';
 import '../../authentication/data/demo_session_repository.dart';
 
 final supportPointsRepositoryProvider =
     Provider<SupportPointsRepository>((ref) {
-  return SupportPointsRepository(ref.watch(supabaseClientProvider));
+  return SupportPointsRepository(ref.watch(apiClientProvider));
 });
 
 final supportPointsProvider = FutureProvider<List<SupportPoint>>((ref) async {
@@ -76,15 +75,9 @@ final supportPointsProvider = FutureProvider<List<SupportPoint>>((ref) async {
 });
 
 class SupportPointsRepository {
-  const SupportPointsRepository(this._client);
+  const SupportPointsRepository(this._api);
+  final ApiClient _api;
 
-  final SupabaseClient _client;
-
-  Future<List<SupportPoint>> list() async {
-    final rows = await _client
-        .from('support_points')
-        .select()
-        .order('is_verified', ascending: false);
-    return [for (final row in rows) SupportPoint.fromJson(row)];
-  }
+  Future<List<SupportPoint>> list() async =>
+      (await _api.list('/support-points')).map(SupportPoint.fromJson).toList();
 }

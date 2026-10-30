@@ -6,6 +6,17 @@ import '../errors/app_exception.dart';
 final locationServiceProvider =
     Provider<LocationService>((ref) => LocationService());
 
+final locationReadinessProvider = FutureProvider.autoDispose<LocationReadiness>(
+  (ref) => ref.watch(locationServiceProvider).readiness(),
+);
+
+enum LocationReadiness {
+  ready,
+  permissionRequired,
+  serviceDisabled,
+  blocked,
+}
+
 class LocationCapture {
   const LocationCapture({
     required this.latitude,
@@ -34,6 +45,34 @@ class LocationCapture {
 }
 
 class LocationService {
+  Future<LocationReadiness> readiness() async {
+    if (!await Geolocator.isLocationServiceEnabled()) {
+      return LocationReadiness.serviceDisabled;
+    }
+    return _readinessFromPermission(await Geolocator.checkPermission());
+  }
+
+  Future<LocationReadiness> requestAccess() async {
+    if (!await Geolocator.isLocationServiceEnabled()) {
+      return LocationReadiness.serviceDisabled;
+    }
+    var permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+    }
+    return _readinessFromPermission(permission);
+  }
+
+  LocationReadiness _readinessFromPermission(LocationPermission permission) {
+    return switch (permission) {
+      LocationPermission.always ||
+      LocationPermission.whileInUse =>
+        LocationReadiness.ready,
+      LocationPermission.deniedForever => LocationReadiness.blocked,
+      _ => LocationReadiness.permissionRequired,
+    };
+  }
+
   Future<LocationCapture> captureCurrent() async {
     final enabled = await Geolocator.isLocationServiceEnabled();
     if (!enabled) {

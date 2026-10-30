@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../../app/theme.dart';
+import '../../../core/utils/phone_number_formatter.dart';
 import '../../../core/widgets/app_state_view.dart';
 import '../../../core/widgets/protegeela_brand.dart';
 import '../../../shared/models/trusted_contact.dart';
@@ -85,6 +89,9 @@ class TrustedContactsPage extends ConsumerWidget {
                                       _editContact(context, ref, contact),
                                   onManageAccess: () =>
                                       _manageAccess(context, ref, contact),
+                                  onInvite: () =>
+                                      _inviteContact(context, ref, contact),
+                                  onTest: () => _testContact(context, contact),
                                   onRemove: () =>
                                       _removeContact(context, ref, contact),
                                 );
@@ -108,7 +115,7 @@ class TrustedContactsPage extends ConsumerWidget {
                             SizedBox(width: 12),
                             Expanded(
                               child: Text(
-                                'Durante um alerta, seus contatos autorizados recebem sua localização exata.',
+                                'Contatos pendentes ainda não recebem alertas. Sem um provedor configurado, convites e testes abrem o canal escolhido para envio manual.',
                                 style: TextStyle(fontSize: 13),
                               ),
                             ),
@@ -144,6 +151,7 @@ class TrustedContactsPage extends ConsumerWidget {
           phone: value.phone,
           email: value.email.isEmpty ? null : value.email,
           relationship: value.relationship,
+          preferredChannel: value.preferredChannel,
           invitationStatus: 'accepted',
           canViewExactLocation: value.canViewExactLocation,
           isPrimary: notifier.state.isEmpty,
@@ -159,12 +167,13 @@ class TrustedContactsPage extends ConsumerWidget {
     await _runMutation(
       context,
       ref,
-      successMessage: 'Contato adicionado. O convite está pendente.',
+      successMessage: 'Contato salvo. Nenhum convite foi enviado.',
       mutation: () => ref.read(trustedContactsRepositoryProvider).addContact(
             name: value.name,
             phone: value.phone,
             email: value.email,
             relationship: value.relationship,
+            preferredChannel: value.preferredChannel,
             canViewExactLocation: value.canViewExactLocation,
           ),
     );
@@ -192,6 +201,7 @@ class TrustedContactsPage extends ConsumerWidget {
               email: value.email,
               clearEmail: value.email.isEmpty,
               relationship: value.relationship,
+              preferredChannel: value.preferredChannel,
             )
           else
             item,
@@ -210,6 +220,7 @@ class TrustedContactsPage extends ConsumerWidget {
             phone: value.phone,
             email: value.email,
             relationship: value.relationship,
+            preferredChannel: value.preferredChannel,
           ),
     );
   }
@@ -251,6 +262,87 @@ class TrustedContactsPage extends ConsumerWidget {
                 canViewExactLocation: permission,
               ),
     );
+  }
+
+  Future<void> _inviteContact(
+    BuildContext context,
+    WidgetRef ref,
+    TrustedContact contact,
+  ) async {
+    final demoActive = await ref.read(demoSessionProvider.future);
+    if (!context.mounted) return;
+    if (demoActive) {
+      _showMessage(context, 'Convites reais não são enviados na demonstração.');
+      return;
+    }
+    try {
+      final invitation = await ref
+          .read(trustedContactsRepositoryProvider)
+          .createInvitation(contact.id);
+      ref.invalidate(trustedContactsProvider);
+      if (!context.mounted) return;
+      final message =
+          '${contact.name}, você foi convidada(o) para participar da rede de apoio do ProtegeEla. Confirme pelo link: ${invitation.url}';
+      final opened = await _openChannel(contact, message);
+      if (!context.mounted) return;
+      if (!opened) {
+        await Clipboard.setData(ClipboardData(text: message));
+        if (context.mounted) {
+          _showMessage(context, 'Convite copiado. Cole no canal desejado.');
+        }
+      } else {
+        _showMessage(
+          context,
+          'Canal aberto para você enviar o convite. O envio ainda é manual.',
+        );
+      }
+    } catch (_) {
+      if (context.mounted) {
+        _showMessage(context, 'Não foi possível preparar o convite.',
+            error: true);
+      }
+    }
+  }
+
+  Future<void> _testContact(
+    BuildContext context,
+    TrustedContact contact,
+  ) async {
+    const message =
+        'Teste do ProtegeEla: confirme se você recebeu esta mensagem da minha rede de apoio.';
+    final opened = await _openChannel(contact, message);
+    if (!context.mounted) return;
+    if (opened) {
+      _showMessage(
+          context, 'Canal aberto. Envie a mensagem para concluir o teste.');
+    } else {
+      await Clipboard.setData(const ClipboardData(text: message));
+      if (context.mounted) {
+        _showMessage(context, 'Mensagem de teste copiada.');
+      }
+    }
+  }
+
+  Future<bool> _openChannel(TrustedContact contact, String message) async {
+    final phone = PhoneNumberFormatter.digitsOnly(contact.phone);
+    final internationalPhone = phone.startsWith('55') ? phone : '55$phone';
+    final Uri? uri = switch (contact.preferredChannel) {
+      'whatsapp' =>
+        Uri.https('wa.me', '/$internationalPhone', {'text': message}),
+      'sms' =>
+        Uri(scheme: 'sms', path: phone, queryParameters: {'body': message}),
+      'email' when contact.email != null => Uri(
+          scheme: 'mailto',
+          path: contact.email,
+          queryParameters: {
+            'subject': 'Rede de apoio ProtegeEla',
+            'body': message,
+          },
+        ),
+      'call' => Uri(scheme: 'tel', path: phone),
+      _ => null,
+    };
+    return uri != null && await launchUrl(uri);
   }
 
   Future<void> _removeContact(
@@ -329,17 +421,20 @@ class _ContactCard extends StatelessWidget {
     required this.contact,
     required this.onEdit,
     required this.onManageAccess,
+    required this.onInvite,
+    required this.onTest,
     required this.onRemove,
   });
 
   final TrustedContact contact;
   final VoidCallback onEdit;
   final VoidCallback onManageAccess;
+  final VoidCallback onInvite;
+  final VoidCallback onTest;
   final VoidCallback onRemove;
 
   @override
   Widget build(BuildContext context) {
-    final accepted = contact.invitationStatus == 'accepted';
     final initial = contact.name.trim().isEmpty
         ? '?'
         : contact.name.trim()[0].toUpperCase();
@@ -381,28 +476,43 @@ class _ContactCard extends StatelessWidget {
                           color: AppColors.primary,
                         ),
                       _ContactBadge(
-                        icon: accepted
-                            ? Icons.check_rounded
-                            : Icons.schedule_rounded,
-                        text: accepted ? 'Ativo' : 'Pendente',
-                        color: accepted ? AppColors.safe : AppColors.textMuted,
+                        icon: _statusIcon(contact.invitationStatus),
+                        text: _statusLabel(contact.invitationStatus),
+                        color: _statusColor(contact.invitationStatus),
+                      ),
+                      _ContactBadge(
+                        icon: _channelIcon(contact.preferredChannel),
+                        text: _channelLabel(contact.preferredChannel),
+                        color: AppColors.primary,
                       ),
                     ],
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    '${_relationshipLabel(contact.relationship)} • ${contact.phone}',
+                    '${_relationshipLabel(contact.relationship)} • ${PhoneNumberFormatter.format(contact.phone)}',
                     style: const TextStyle(
                       color: AppColors.textMuted,
                       fontSize: 13,
                     ),
                   ),
+                  if (contact.confirmedAt != null) ...[
+                    const SizedBox(height: 3),
+                    Text(
+                      'Confirmado em ${DateFormat('dd/MM/yyyy').format(contact.confirmedAt!.toLocal())}',
+                      style: const TextStyle(
+                        color: AppColors.safe,
+                        fontSize: 11.5,
+                      ),
+                    ),
+                  ],
                 ],
               ),
             ),
             _ContactMenuButton(
               onEdit: onEdit,
               onManageAccess: onManageAccess,
+              onInvite: onInvite,
+              onTest: onTest,
               onRemove: onRemove,
             ),
           ],
@@ -420,17 +530,57 @@ class _ContactCard extends StatelessWidget {
     };
     return labels[value] ?? 'Contato';
   }
+
+  String _statusLabel(String value) => switch (value) {
+        'accepted' => 'Ativo',
+        'declined' => 'Recusado',
+        'pending' => 'Pendente',
+        'expired' => 'Expirado',
+        _ => 'Não convidado',
+      };
+
+  IconData _statusIcon(String value) => switch (value) {
+        'accepted' => Icons.check_rounded,
+        'declined' => Icons.close_rounded,
+        'expired' => Icons.timer_off_outlined,
+        _ => Icons.schedule_rounded,
+      };
+
+  Color _statusColor(String value) => switch (value) {
+        'accepted' => AppColors.safe,
+        'declined' => AppColors.emergency,
+        'pending' => AppColors.warning,
+        _ => AppColors.textMuted,
+      };
+
+  String _channelLabel(String value) => switch (value) {
+        'sms' => 'SMS',
+        'email' => 'E-mail',
+        'call' => 'Ligação',
+        _ => 'WhatsApp',
+      };
+
+  IconData _channelIcon(String value) => switch (value) {
+        'sms' => Icons.sms_outlined,
+        'email' => Icons.mail_outline_rounded,
+        'call' => Icons.phone_outlined,
+        _ => Icons.chat_outlined,
+      };
 }
 
 class _ContactMenuButton extends StatelessWidget {
   const _ContactMenuButton({
     required this.onEdit,
     required this.onManageAccess,
+    required this.onInvite,
+    required this.onTest,
     required this.onRemove,
   });
 
   final VoidCallback onEdit;
   final VoidCallback onManageAccess;
+  final VoidCallback onInvite;
+  final VoidCallback onTest;
   final VoidCallback onRemove;
 
   @override
@@ -455,12 +605,30 @@ class _ContactMenuButton extends StatelessWidget {
           case _ContactMenuAction.permissions:
             onManageAccess();
             break;
+          case _ContactMenuAction.invite:
+            onInvite();
+            break;
+          case _ContactMenuAction.test:
+            onTest();
+            break;
           case _ContactMenuAction.remove:
             onRemove();
             break;
         }
       },
       itemBuilder: (context) => const [
+        _ContactMenuItem(
+          value: _ContactMenuAction.invite,
+          icon: Icons.send_outlined,
+          title: 'Enviar convite novamente',
+          subtitle: 'Abre o canal preferido',
+        ),
+        _ContactMenuItem(
+          value: _ContactMenuAction.test,
+          icon: Icons.fact_check_outlined,
+          title: 'Testar contato',
+          subtitle: 'Envia uma mensagem de teste',
+        ),
         _ContactMenuItem(
           value: _ContactMenuAction.edit,
           icon: Icons.edit_outlined,
@@ -498,7 +666,7 @@ class _ContactMenuButton extends StatelessWidget {
   }
 }
 
-enum _ContactMenuAction { edit, permissions, remove }
+enum _ContactMenuAction { edit, invite, test, permissions, remove }
 
 class _ContactMenuItem extends PopupMenuItem<_ContactMenuAction> {
   const _ContactMenuItem({

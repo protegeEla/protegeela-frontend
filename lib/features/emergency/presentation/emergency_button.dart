@@ -8,7 +8,7 @@ import '../../../app/theme.dart';
 import '../../../core/constants/app_constants.dart';
 import 'widgets/hold_feedback.dart';
 
-enum EmergencyConfirmationAction { sendNow, cancel, silent }
+enum EmergencyConfirmationAction { sendNow, cancel, silent, shareOnMap }
 
 class EmergencyButton extends StatefulWidget {
   const EmergencyButton({
@@ -17,7 +17,8 @@ class EmergencyButton extends StatefulWidget {
     this.enabled = true,
   });
 
-  final Future<void> Function({required bool isSilent}) onConfirmed;
+  final Future<void> Function(
+      {required bool isSilent, required bool publicVisibility}) onConfirmed;
   final bool enabled;
 
   @override
@@ -110,6 +111,7 @@ class _EmergencyButtonState extends State<EmergencyButton>
     try {
       await widget.onConfirmed(
         isSilent: action == EmergencyConfirmationAction.silent,
+        publicVisibility: action == EmergencyConfirmationAction.shareOnMap,
       );
     } finally {
       if (mounted) {
@@ -145,7 +147,8 @@ class _EmergencyButtonState extends State<EmergencyButton>
     return RepaintBoundary(
       child: Semantics(
         button: true,
-        label: 'Pedir ajuda. Pressione e segure por 5 segundos.',
+        label:
+            'Pedir ajuda. Pressione e segure por ${AppConstants.emergencyHoldSeconds} segundos.',
         child: MouseRegion(
           cursor: disabled
               ? SystemMouseCursors.forbidden
@@ -319,7 +322,7 @@ class _EmergencyButtonState extends State<EmergencyButton>
                                           ? 'Aguardando confirmação'
                                           : hold > 0
                                               ? 'Continue segurando\nSolte para cancelar'
-                                              : 'Pressione e segure por 5 segundos',
+                                              : 'Pressione e segure por ${AppConstants.emergencyHoldSeconds} segundos',
                                       key: ValueKey(_busy
                                           ? 'sending'
                                           : hold > 0
@@ -364,6 +367,11 @@ class _EmergencyConfirmationDialogState
     extends State<EmergencyConfirmationDialog> {
   Timer? _timer;
   int _remaining = AppConstants.confirmationSeconds;
+  bool _shareOnMap = false;
+
+  void _send() => Navigator.of(context).pop(_shareOnMap
+      ? EmergencyConfirmationAction.shareOnMap
+      : EmergencyConfirmationAction.sendNow);
 
   @override
   void initState() {
@@ -371,7 +379,7 @@ class _EmergencyConfirmationDialogState
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (_remaining <= 1) {
         timer.cancel();
-        Navigator.of(context).pop(EmergencyConfirmationAction.sendNow);
+        _send();
       } else {
         setState(() => _remaining--);
       }
@@ -393,10 +401,19 @@ class _EmergencyConfirmationDialogState
         size: 36,
       ),
       title: Text('Enviar alerta em $_remaining s'),
-      content: const Text(
-        'Se você não escolher nada, o alerta será enviado. O app não substitui a polícia, emergência ou atendimento médico.',
-        textAlign: TextAlign.center,
-      ),
+      content: Column(mainAxisSize: MainAxisSize.min, children: [
+        const Text(
+            'O alerta será registrado no servidor ao terminar a contagem. Nenhum SMS, WhatsApp ou push será enviado aos contatos nesta versão.',
+            textAlign: TextAlign.center),
+        CheckboxListTile(
+          value: _shareOnMap,
+          onChanged: (value) => setState(() => _shareOnMap = value ?? false),
+          title: const Text('Mostrar região aproximada no mapa compartilhado'),
+          subtitle: const Text(
+              'Sem nome ou coordenadas exatas. O modo silencioso mantém o alerta privado.'),
+          contentPadding: EdgeInsets.zero,
+        ),
+      ]),
       actionsAlignment: MainAxisAlignment.center,
       actions: [
         TextButton(
@@ -410,8 +427,7 @@ class _EmergencyConfirmationDialogState
           child: const Text('Ativar silenciosamente'),
         ),
         FilledButton(
-          onPressed: () =>
-              Navigator.of(context).pop(EmergencyConfirmationAction.sendNow),
+          onPressed: _send,
           style: FilledButton.styleFrom(
             backgroundColor: AppColors.emergency,
           ),
